@@ -105,6 +105,12 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
 .vu-s{flex:1;border-radius:1px;transition:opacity .05s}
 
 /* Volume */
+.tc-prog-wrap{height:3px;background:#1A1A24;margin:0 12px 5px;border-radius:2px;overflow:hidden}
+.tc-prog-bar{height:100%;width:0%;border-radius:2px;transition:width .08s linear}
+.tc-time{font-size:9px;color:var(--muted);letter-spacing:.5px;padding:0 12px 3px;display:block;min-height:14px}
+.tc-prog-wrap{height:3px;background:#1A1A24;margin:2px 12px 4px;border-radius:2px;overflow:hidden}
+.tc-prog-bar{height:100%;width:0%;border-radius:2px}
+.tc-time{font-size:9px;color:var(--muted);letter-spacing:.5px;padding:0 12px 2px;display:block;min-height:13px}
 .tc-vol{padding:0 12px 7px;display:flex;align-items:center;gap:7px}
 .tc-vol input{flex:1}
 .tc-vol-val{font-size:9px;color:var(--muted);min-width:24px;text-align:right}
@@ -198,6 +204,8 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
     <button class="tog green" id="tog-sync"   onclick="toggle('loopSync')"   title="同步所有軌道長度">LOOP SYNC</button>
     <button class="tog"       id="tog-cin"    onclick="toggle('countIn')"    title="錄音前計數一小節">COUNT-IN</button>
     <button class="tog"       id="tog-arec"   onclick="toggle('autoRec')"    title="偵測到聲音才開始錄音">AUTO REC</button>
+    <button class="tog"       id="tog-metro"  onclick="toggle('metro')"      title="節拍器">♩ METRO</button>
+    <button class="tog"       id="tog-lq"     onclick="toggle('loopQuant')"  title="對齊至最近拍點">QUANTIZE</button>
     <!-- Global actions -->
     <button class="g-act g-act-stop"  onclick="allStop()">◼ ALL STOP</button>
     <button class="g-act g-act-clear" onclick="clearAll()">CLEAR ALL</button>
@@ -220,7 +228,7 @@ const S = {
 // TRIGGER 按鈕文字
 const TRIG_LABEL = {
   EMPTY:'● REC', RECORDING:'■ STOP', PLAYBACK:'■ STOP',
-  OVERDUBBING:'■ STOP', STOPPED:'▶ PLAY', STANDBY:'… WAIT'
+  OVERDUBBING:'■ STOP', STOPPED:'▶ RESUME', STANDBY:'… WAIT'
 };
 
 const TRACK_COUNT  = 5;
@@ -236,6 +244,12 @@ let playMode   = 'MULTI';
 let loopSync   = true;   // 同步所有軌道長度
 let countIn    = false;  // 錄音前計數一小節
 let autoRec    = false;  // 偵測聲音後自動開始錄音
+let metroOn    = false;  // 節拍器開關
+let loopQuant  = false;  // 錄音結束後對齊至最近拍點
+let metroNext  = 0;      // 下一個計數音的排程時間
+let metroOn    = false;  // 節拍器開關
+let loopQuant  = false;  // 錄音結束後對齊至最近拍點
+let metroNext  = 0;      // 下一個計數音的排程時間
 
 // ════════════════════════════════════════════════════════
 // 音訊引擎全域變數
@@ -521,9 +535,17 @@ function stopRecording(t, isOverdub) {
 
           // 第一軌：設定主循環長度
           if (t.isFirstTrack) {
-            masterLoopLen = newBuf.duration;
+            let rawLen = newBuf.duration;
+            // Loop Quantize：將錄音長度對齊至最近的拍點
+            if (loopQuant && bpm > 0) {
+              const beatLen = 60 / bpm;
+              const beats   = Math.max(1, Math.round(rawLen / beatLen));
+              rawLen        = beats * beatLen;
+            }
+            masterLoopLen = rawLen;
             loopStartTime = audioCtx.currentTime;
             updateGlobalStatus();
+            if (metroOn) scheduleMetro();
           } else if (loopSync && masterLoopLen) {
             // 非第一軌 + Loop Sync 開啟：裁切或補零對齊
             newBuf = fitToMasterLen(newBuf);
@@ -766,12 +788,19 @@ function setMode(m) {
 }
 
 function toggle(key) {
-  const map = {loopSync:'tog-sync', countIn:'tog-cin', autoRec:'tog-arec'};
-  if (key==='loopSync') loopSync=!loopSync;
-  if (key==='countIn')  countIn=!countIn;
-  if (key==='autoRec')  autoRec=!autoRec;
+  const map = {loopSync:'tog-sync', countIn:'tog-cin', autoRec:'tog-arec',
+               metro:'tog-metro', loopQuant:'tog-lq'};
+  if (key==='loopSync')  loopSync=!loopSync;
+  if (key==='countIn')   countIn=!countIn;
+  if (key==='autoRec')   autoRec=!autoRec;
+  if (key==='loopQuant') loopQuant=!loopQuant;
+  if (key==='metro') {
+    metroOn=!metroOn;
+    if (metroOn && audioCtx) scheduleMetro();
+  }
+  const val = {loopSync,countIn,autoRec,metro:metroOn,loopQuant}[key];
   const el = document.getElementById(map[key]);
-  if (el) el.classList.toggle('on', key==='loopSync'?loopSync:key==='countIn'?countIn:autoRec);
+  if (el) el.classList.toggle('on', val);
 }
 
 // ════════════════════════════════════════════════════════
@@ -780,6 +809,27 @@ function toggle(key) {
 function setState(t, s) {
   t.state = s;
   rerenderTrack(t.id);
+}
+
+// ── 節拍器排程 ─────────────────────────────────────────
+function scheduleMetro() {
+  if (!metroOn || !audioCtx) return;
+  const now = audioCtx.currentTime;
+  const iv  = 60 / bpm;
+  if (metroNext < now) metroNext = now;
+  while (metroNext < now + 0.4) {
+    const osc = audioCtx.createOscillator();
+    const g   = audioCtx.createGain();
+    // 每小節第一拍用高音（1320Hz），其餘用低音（660Hz）
+    const beat = Math.round((metroNext - loopStartTime) / iv) % 4;
+    osc.frequency.value = beat === 0 ? 1320 : 660;
+    g.gain.setValueAtTime(0.25, metroNext);
+    g.gain.exponentialRampToValueAtTime(0.001, metroNext + 0.06);
+    osc.connect(g); g.connect(audioCtx.destination);
+    osc.start(metroNext); osc.stop(metroNext + 0.07);
+    metroNext += iv;
+  }
+  setTimeout(scheduleMetro, 180);
 }
 
 function updateGlobalStatus() {
@@ -821,6 +871,10 @@ function trackHTML(t) {
     EMPTY:'#303038', RECORDING:'var(--red)', PLAYBACK:'var(--green)',
     OVERDUBBING:'var(--orange)', STOPPED:'var(--yellow)', STANDBY:'var(--yellow)'
   }[state];
+  const stateLabel = {
+    EMPTY:'EMPTY', RECORDING:'REC ●', PLAYBACK:'PLAY',
+    OVERDUBBING:'DUB ●', STOPPED:'|| PAUSED', STANDBY:'STANDBY'
+  }[state];
 
   return `
 <div class="tc" id="tc${id}" data-st="${state}">
@@ -828,11 +882,15 @@ function trackHTML(t) {
     <div class="led led-${state}"></div>
     <div class="tc-meta">
       <div class="tc-name" style="color:${state===S.EMPTY?'#303038':c}">${TRACK_NAMES[id]}</div>
-      <div class="tc-state" style="color:${stateColor}">${state}</div>
+      <div class="tc-state" style="color:${stateColor}">${stateLabel}</div>
       <div class="tc-loop-ct" id="lc${id}">${state===S.PLAYBACK&&loopCount?'×'+loopCount:''}</div>
     </div>
     ${vuHTML(id)}
   </div>
+  <div class="tc-prog-wrap"><div class="tc-prog-bar" id="pb${id}" style="background:${c}"></div></div>
+  <span class="tc-time" id="tm${id}"></span>
+  <div class="tc-prog-wrap"><div class="tc-prog-bar" id="pb${id}" style="background:${c}"></div></div>
+  <span class="tc-time" id="tm${id}">-- / --</span>
   <div class="tc-vol">
     <input type="range" min="0" max="1" step="0.02" value="${volume}"
       oninput="setTrackVol(${id},this.value)">
@@ -916,13 +974,31 @@ function getRMS(an) {
       if (seg) seg.style.opacity = lv>=(s+1)/SEGS?'1':'.1';
     }
 
-    // 更新 loop 計數
-    if (t.state===S.PLAYBACK && masterLoopLen && loopStartTime && audioCtx) {
-      const n = Math.floor((audioCtx.currentTime-loopStartTime)/masterLoopLen);
-      if (n !== t.loopCount) {
-        t.loopCount = n;
-        const el = document.getElementById('lc'+i);
-        if (el) el.textContent = '×'+n;
+    // 更新進度條 + Timecode + Loop 計數
+    if (t.buffer && masterLoopLen && loopStartTime && audioCtx) {
+      const now     = audioCtx.currentTime;
+      const elapsed = (now - loopStartTime) % masterLoopLen;
+      const pos     = elapsed % t.buffer.duration;
+      const dur     = t.buffer.duration;
+      const pct     = pos / dur * 100;
+
+      const pb = document.getElementById('pb'+i);
+      if (pb) pb.style.width = pct + '%';
+
+      // 只在播放/疊錄中顯示 timecode
+      if (t.state===S.PLAYBACK||t.state===S.OVERDUBBING) {
+        const tm = document.getElementById('tm'+i);
+        if (tm) tm.textContent = pos.toFixed(2) + 's / ' + dur.toFixed(2) + 's';
+        // loop 計數
+        const n = Math.floor((now-loopStartTime)/masterLoopLen);
+        if (n !== t.loopCount) {
+          t.loopCount = n;
+          const lcel = document.getElementById('lc'+i);
+          if (lcel) lcel.textContent = '×'+n;
+        }
+      } else {
+        const tm = document.getElementById('tm'+i);
+        if (tm) tm.textContent = '-- / ' + dur.toFixed(2) + 's';
       }
     }
   }
