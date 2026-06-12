@@ -6,255 +6,501 @@
 <title>LOOPR</title>
 <style>
 :root{
-  --bg:#0A0A0F;--card:#111118;--border:#1C1C26;
-  --accent:#FFD60A;--green:#30D158;--red:#FF3B30;
-  --text:#E5E5EA;--muted:#3A3A44;
+  --bg:#090910;--card:#111119;--card2:#16161F;--border:#1E1E2A;
+  --accent:#FFD60A;--green:#30D158;--red:#FF3B30;--blue:#64D2FF;--purple:#BF5AF2;
+  --text:#E5E5EA;--muted:#44444E;
   --font:'SF Mono','Courier New',monospace;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;padding-bottom:48px}
-button{cursor:pointer;border:none;outline:none;font-family:var(--font)}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;padding-bottom:60px}
+button{cursor:pointer;border:none;outline:none;font-family:var(--font);-webkit-tap-highlight-color:transparent}
 
-#hdr{padding:24px 20px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start}
-.logo{font-size:24px;font-weight:700;letter-spacing:5px}
+/* ── HEADER ── */
+#hdr{padding:20px 16px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.logo{font-size:22px;font-weight:700;letter-spacing:5px}
 .logo em{color:var(--accent);font-style:normal}
-#hdr-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
-#loop-status{font-size:11px;letter-spacing:2px;color:var(--muted)}
-#loop-status.running{color:var(--green)}
-#reset-btn{background:var(--card);border:1px solid var(--border);color:var(--muted);padding:7px 13px;border-radius:8px;font-size:11px;letter-spacing:1px}
+#loop-info{display:flex;flex-direction:column;align-items:flex-end;gap:3px}
+#loop-bpm{font-size:13px;color:var(--accent);letter-spacing:2px;font-weight:700}
+#loop-len{font-size:10px;color:var(--muted);letter-spacing:2px}
 
-#tracks{padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+/* ── MASTER SECTION ── */
+#master{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.master-block{display:flex;flex-direction:column;gap:4px}
+.master-label{font-size:9px;color:var(--muted);letter-spacing:2px}
+
+/* BPM control */
+#bpm-wrap{display:flex;align-items:center;gap:6px}
+.bpm-btn{width:28px;height:28px;border-radius:6px;background:var(--card2);border:1px solid var(--border);color:var(--text);font-size:14px;display:flex;align-items:center;justify-content:center}
+#bpm-val{font-size:14px;font-weight:700;color:var(--accent);min-width:36px;text-align:center;letter-spacing:1px}
+
+/* Metronome toggle */
+#metro-btn{
+  height:36px;padding:0 14px;border-radius:8px;font-size:11px;font-weight:700;letter-spacing:1px;
+  background:var(--card2);border:1px solid var(--border);color:var(--muted);transition:all .15s
+}
+#metro-btn.on{background:#FFD60A22;border-color:#FFD60A66;color:var(--accent)}
+
+/* Master vol */
+#mvol-wrap{display:flex;align-items:center;gap:8px;flex:1;min-width:120px}
+#mvol-val{font-size:11px;color:var(--muted);min-width:28px;text-align:right;letter-spacing:1px}
+
+/* Reset */
+#reset-btn{height:36px;padding:0 14px;border-radius:8px;font-size:11px;letter-spacing:1px;background:var(--card2);border:1px solid var(--border);color:var(--muted)}
+
+/* Slider base */
+input[type=range]{-webkit-appearance:none;appearance:none;background:transparent;cursor:pointer;height:20px}
+input[type=range]::-webkit-slider-runnable-track{background:var(--border);height:3px;border-radius:2px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#fff;margin-top:-5.5px}
+input[type=range]::-moz-range-track{background:var(--border);height:3px;border-radius:2px}
+input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:#fff;border:none}
+
+/* ── TRACKS ── */
+#tracks{padding:12px 14px;display:flex;flex-direction:column;gap:8px}
 
 .track{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden}
-@keyframes recBorder{0%,100%{border-color:#FF3B3033}50%{border-color:#FF3B3099}}
-.track[data-state=recording]{animation:recBorder 1.2s infinite}
+@keyframes recGlow{0%,100%{border-color:#FF3B3033}50%{border-color:#FF3B3099}}
+@keyframes dubGlow{0%,100%{border-color:#FFD60A33}50%{border-color:#FFD60A88}}
+.track[data-state=recording]{animation:recGlow 1s infinite}
+.track[data-state=overdubbing]{animation:dubGlow 1s infinite}
 
-.track-main{padding:13px 13px 12px;display:flex;align-items:center;gap:11px}
+.track-top{padding:12px 12px 8px;display:flex;align-items:center;gap:10px}
 
-.rec-btn{width:54px;height:54px;border-radius:50%;font-size:17px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s}
-.rec-btn[data-state=idle]     {background:#1C1C26;color:#404048}
-.rec-btn[data-state=recording]{background:var(--red);color:#fff;box-shadow:0 0 22px #FF3B3088}
-.rec-btn[data-state=playing]  {background:var(--green);color:#fff}
-.rec-btn[data-state=muted]    {background:#1C1C26;color:var(--green);border:2px solid #30D15840}
+/* Main action button */
+.rec-btn{
+  width:52px;height:52px;border-radius:50%;font-size:15px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s
+}
+.rec-btn[data-s=idle]       {background:#1A1A24;color:#3A3A46}
+.rec-btn[data-s=recording]  {background:var(--red);color:#fff;box-shadow:0 0 20px #FF3B3077}
+.rec-btn[data-s=overdubbing]{background:var(--accent);color:#0A0A0F;box-shadow:0 0 20px #FFD60A55}
+.rec-btn[data-s=playing]    {background:var(--green);color:#fff}
+.rec-btn[data-s=muted]      {background:#1A1A24;color:var(--green);border:2px solid #30D15844}
 
-.track-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}
+/* Track body */
+.track-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+
 .track-row1{display:flex;justify-content:space-between;align-items:center}
 .track-label{font-size:11px;font-weight:700;letter-spacing:2px}
-.track-state{font-size:10px;letter-spacing:2px}
+.track-state{font-size:10px;letter-spacing:1px}
+.loop-count{font-size:10px;color:var(--muted);letter-spacing:1px}
 
-/* ── VU Meter ── */
-.vu-wrap{
-  display:flex;gap:2px;align-items:flex-end;
-  height:18px;padding:0 1px;
+/* VU meter */
+.vu{display:flex;gap:2px;align-items:flex-end;height:16px}
+.vu-s{flex:1;border-radius:1px;transition:opacity .06s}
+
+/* Track vol */
+.track-vol{width:100%}
+
+/* Track controls row */
+.track-ctrl{display:flex;gap:6px;padding:0 12px 10px;flex-wrap:wrap}
+.ctrl-btn{
+  flex:1;min-width:50px;height:28px;border-radius:7px;font-size:10px;font-weight:700;
+  letter-spacing:1px;background:var(--card2);border:1px solid var(--border);color:var(--muted);
+  transition:all .15s
 }
-.vu-seg{
-  flex:1;border-radius:2px;
-  transition:opacity .05s;
-}
+.ctrl-btn.active{background:var(--card2);border-color:currentColor}
+.ctrl-btn.rev.active{color:var(--blue);border-color:#64D2FF55}
+.ctrl-btn.spd.active{color:var(--purple);border-color:#BF5AF255}
+.ctrl-btn.undo{color:#666}
+.ctrl-btn.undo:hover{color:var(--red)}
+.ctrl-btn.mute.active{color:var(--accent);border-color:#FFD60A55}
 
-input[type=range]{-webkit-appearance:none;appearance:none;background:transparent;width:100%;cursor:pointer;height:20px}
-input[type=range]::-webkit-slider-runnable-track{background:#1C1C26;height:3px;border-radius:2px}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;background:#fff;margin-top:-6px}
-input[type=range]::-moz-range-track{background:#1C1C26;height:3px;border-radius:2px}
-input[type=range]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;background:#fff;border:none}
-
-.del-btn{background:none;color:#252530;font-size:14px;padding:4px 5px;flex-shrink:0;align-self:center;transition:color .15s}
+/* Side delete */
+.del-btn{background:none;color:#252532;font-size:13px;padding:3px 5px;flex-shrink:0;align-self:flex-start;margin-top:2px;transition:color .15s}
 .del-btn:hover{color:var(--red)}
 
-#info{padding:6px 20px 0;font-size:11px;color:var(--muted);letter-spacing:1px;min-height:22px}
-#err{margin:10px 16px 0;padding:10px 14px;background:#3D1A1A;border-radius:10px;color:var(--red);font-size:12px;display:none}
-#legend{margin-top:20px;padding:0 20px;display:flex;justify-content:center}
-#legend span{font-size:11px;color:#252530;letter-spacing:1px}
+/* info */
+#info{padding:4px 16px 0;font-size:11px;color:var(--muted);letter-spacing:1px;min-height:20px}
+#err{margin:8px 14px 0;padding:9px 13px;background:#3D1A1A;border-radius:10px;color:var(--red);font-size:12px;display:none}
+#legend{margin-top:16px;padding:0 16px;text-align:center;font-size:10px;color:#252532;letter-spacing:1px;line-height:2}
 </style>
 </head>
 <body>
 
 <div id="hdr">
   <div class="logo">LOOP<em>R</em></div>
-  <div id="hdr-right">
-    <div id="loop-status">○ stopped</div>
-    <button id="reset-btn" onclick="resetAll()">RESET</button>
+  <div id="loop-info">
+    <div id="loop-bpm">-- BPM</div>
+    <div id="loop-len">○ stopped</div>
   </div>
 </div>
 
-<div id="info">tap ● to start recording</div>
+<div id="master">
+  <div class="master-block">
+    <div class="master-label">BPM</div>
+    <div id="bpm-wrap">
+      <button class="bpm-btn" onclick="changeBPM(-1)">−</button>
+      <div id="bpm-val">120</div>
+      <button class="bpm-btn" onclick="changeBPM(1)">+</button>
+    </div>
+  </div>
+
+  <div class="master-block">
+    <div class="master-label">METRO</div>
+    <button id="metro-btn" onclick="toggleMetro()">♩ OFF</button>
+  </div>
+
+  <div class="master-block" style="flex:1;min-width:100px">
+    <div class="master-label">MASTER VOL</div>
+    <div id="mvol-wrap">
+      <input type="range" min="0" max="1" step="0.02" value="0.8" style="flex:1"
+        oninput="setMasterVol(this.value)">
+      <span id="mvol-val">80%</span>
+    </div>
+  </div>
+
+  <button id="reset-btn" onclick="resetAll()">RESET</button>
+</div>
+
+<div id="info">tap ● to record — tap again to overdub</div>
 <div id="err"></div>
 <div id="tracks"></div>
-<div id="legend"><span>● rec &nbsp;■ stop &nbsp;|| mute &nbsp;▶ play</span></div>
+
+<div id="legend">
+  ● rec → ■ stop/play → tap again = OVERDUB → ■ = mix<br>
+  MUTE = silence track &nbsp;|&nbsp; REV = reverse &nbsp;|&nbsp; ½/2x = speed
+</div>
 
 <script>
-const COLORS = ['#FF453A','#FF9F0A','#30D158','#64D2FF','#BF5AF2','#FF6B6B'];
-const LABELS  = {idle:'READY', recording:'REC', playing:'PLAY', muted:'MUTE'};
-const ICONS   = {idle:'●', recording:'■', playing:'||', muted:'▶'};
-const LCOLOR  = {idle:'#2A2A36', recording:'#FF3B30', playing:'#30D158', muted:'#2A2A36'};
-const MAX = 6;
-const SEGS = 20; // number of VU segments
+// ── Constants ──────────────────────────────────────────
+const COLORS  = ['#FF453A','#FF9F0A','#30D158','#64D2FF','#BF5AF2','#FF6B6B'];
+const MAX     = 6;
+const SEGS    = 20;
+const ICONS   = {idle:'●', recording:'●', overdubbing:'■', playing:'■', muted:'■'};
+const SLABELS = {idle:'READY', recording:'REC ●', overdubbing:'DUB ●', playing:'PLAY', muted:'MUTE'};
+const SCOLOR  = {idle:'#2A2A38', recording:'#FF3B30', overdubbing:'#FFD60A', playing:'#30D158', muted:'#2A2A38'};
 
-// Audio
-let ctx=null, micStream=null, micAnalyser=null;
-let masterLen=null, loopStart=null;
-let recTrackId=null, recorder=null, chunks=[];
-const sources={}, gains={}, analysers={}, buffers={}, vols={};
+// ── Audio engine ───────────────────────────────────────
+let ctx = null, micStream = null, micAnalyser = null;
+let masterGain = null;
+let masterLen  = null, loopStart = null;
+let recTrackId = null, recorder = null, chunks = [];
+let metroOn = false, metroBPM = 120, metroNext = 0, metroNode = null;
 
-// Track state
-const states={}, trackVols={};
-for(let i=0;i<MAX;i++){states[i]='idle';trackVols[i]=0.8;vols[i]=0.8;}
+const sources   = {}, gains = {}, analysers = {}, buffers = {}, prevBuffers = {};
+const vols = {}, reversed = {}, speeds = {}, loopCounts = {};
+const trackStates = {};
+const smoothLevels = new Float32Array(MAX);
 
-// ── Audio ──────────────────────────────────────────────
+for(let i=0;i<MAX;i++){
+  trackStates[i]='idle'; vols[i]=0.8; reversed[i]=false; speeds[i]=1; loopCounts[i]=0;
+}
+
+// ── Init ───────────────────────────────────────────────
 async function initAudio(){
-  if(ctx){if(ctx.state==='suspended')await ctx.resume();return true;}
+  if(ctx){ if(ctx.state==='suspended') await ctx.resume(); return true; }
   try{
-    ctx=new(window.AudioContext||window.webkitAudioContext)();
-    micStream=await navigator.mediaDevices.getUserMedia({
+    ctx = new (window.AudioContext||window.webkitAudioContext)();
+    masterGain = ctx.createGain();
+    masterGain.gain.value = 0.8;
+    masterGain.connect(ctx.destination);
+
+    micStream = await navigator.mediaDevices.getUserMedia({
       audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}
     });
-    micAnalyser=ctx.createAnalyser();
-    micAnalyser.fftSize=256;
+    micAnalyser = ctx.createAnalyser();
+    micAnalyser.fftSize = 256;
     ctx.createMediaStreamSource(micStream).connect(micAnalyser);
     return true;
   }catch(e){
-    const el=document.getElementById('err');
-    el.textContent='⚠ 麥克風權限被拒絕，請在瀏覽器設定中允許';
-    el.style.display='block';
+    showErr('⚠ 麥克風權限被拒絕，請在瀏覽器設定中允許');
     return false;
   }
 }
 
+function showErr(m){ const e=document.getElementById('err'); e.textContent=m; e.style.display='block'; }
+function setInfo(t){ document.getElementById('info').textContent=t; }
+
+// ── Metronome ──────────────────────────────────────────
+function toggleMetro(){
+  metroOn = !metroOn;
+  const btn = document.getElementById('metro-btn');
+  btn.textContent = metroOn ? '♩ ON' : '♩ OFF';
+  btn.classList.toggle('on', metroOn);
+  if(metroOn && ctx) scheduleMetro();
+}
+
+function scheduleMetro(){
+  if(!metroOn || !ctx) return;
+  const now = ctx.currentTime;
+  const interval = 60 / metroBPM;
+  if(metroNext < now) metroNext = now;
+  while(metroNext < now + 0.3){
+    const osc = ctx.createOscillator();
+    const g   = ctx.createGain();
+    osc.frequency.value = 880;
+    g.gain.setValueAtTime(0.3, metroNext);
+    g.gain.exponentialRampToValueAtTime(0.001, metroNext + 0.05);
+    osc.connect(g); g.connect(ctx.destination);
+    osc.start(metroNext); osc.stop(metroNext + 0.06);
+    metroNext += interval;
+  }
+  setTimeout(scheduleMetro, 200);
+}
+
+function changeBPM(d){
+  metroBPM = Math.max(40, Math.min(240, metroBPM + d));
+  document.getElementById('bpm-val').textContent = metroBPM;
+  document.getElementById('loop-bpm').textContent = metroBPM + ' BPM';
+}
+
+// ── Master volume ──────────────────────────────────────
+function setMasterVol(v){
+  if(masterGain) masterGain.gain.value = parseFloat(v);
+  document.getElementById('mvol-val').textContent = Math.round(v*100)+'%';
+}
+
+// ── Playback ───────────────────────────────────────────
+function getReversedBuffer(buf){
+  const rev = ctx.createBuffer(buf.numberOfChannels, buf.length, buf.sampleRate);
+  for(let c=0;c<buf.numberOfChannels;c++){
+    const d = buf.getChannelData(c).slice().reverse();
+    rev.copyToChannel(d, c);
+  }
+  return rev;
+}
+
+function scheduleTrack(id, buf){
+  if(sources[id]){ try{sources[id].stop();}catch(e){} }
+  const gain = ctx.createGain();
+  gain.gain.value = trackStates[id]==='muted' ? 0 : (vols[id]??0.8);
+  gains[id] = gain;
+  const an = ctx.createAnalyser(); an.fftSize=256;
+  analysers[id] = an;
+  gain.connect(an); an.connect(masterGain);
+
+  const playBuf = reversed[id] ? getReversedBuffer(buf) : buf;
+  const src = ctx.createBufferSource();
+  src.buffer = playBuf;
+  src.loop = true;
+  src.loopEnd = playBuf.duration;
+  src.playbackRate.value = speeds[id] ?? 1;
+  src.connect(gain);
+
+  const now = ctx.currentTime;
+  const offset = loopStart ? ((now-loopStart)%masterLen)%playBuf.duration : 0;
+  src.start(now, offset);
+  sources[id] = src;
+  // count loops
+  src.onended = null;
+}
+
+// ── Overdub: mix two AudioBuffers ──────────────────────
+async function mixBuffers(buf1, buf2){
+  const len = Math.max(buf1.length, buf2.length);
+  const ch  = Math.max(buf1.numberOfChannels, buf2.numberOfChannels);
+  const out = ctx.createBuffer(ch, len, ctx.sampleRate);
+  for(let c=0;c<ch;c++){
+    const o  = out.getChannelData(c);
+    const d1 = c<buf1.numberOfChannels ? buf1.getChannelData(c) : new Float32Array(len);
+    const d2 = c<buf2.numberOfChannels ? buf2.getChannelData(c) : new Float32Array(len);
+    for(let i=0;i<len;i++){
+      o[i] = (i<d1.length?d1[i]:0)*0.7 + (i<d2.length?d2[i]:0)*0.7;
+    }
+  }
+  return out;
+}
+
+// ── Recording ──────────────────────────────────────────
 function getMime(){
   return['audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus','audio/mp4','']
     .find(t=>!t||MediaRecorder.isTypeSupported(t))||'';
 }
 
-function scheduleTrack(id,buf){
-  if(sources[id]){try{sources[id].stop();}catch(e){}}
-  const gain=ctx.createGain();
-  gain.gain.value=vols[id]??0.8;
-  gains[id]=gain;
-  const an=ctx.createAnalyser();
-  an.fftSize=256;
-  analysers[id]=an;
-  gain.connect(an);
-  an.connect(ctx.destination);
-  const src=ctx.createBufferSource();
-  src.buffer=buf;src.loop=true;src.loopEnd=buf.duration;
-  src.connect(gain);
-  const now=ctx.currentTime;
-  const offset=loopStart?((now-loopStart)%masterLen)%buf.duration:0;
-  src.start(now,offset);
-  sources[id]=src;
-}
-
-async function startRec(id){
-  if(!await initAudio())return;
-  if(recTrackId!==null)await stopRec(recTrackId);
-  recTrackId=id;chunks=[];
+async function startRec(id, isOverdub=false){
+  if(!await initAudio()) return;
+  if(recTrackId!==null) await finishRec(recTrackId);
+  recTrackId=id; chunks=[];
   const mime=getMime();
   recorder=new MediaRecorder(micStream,mime?{mimeType:mime}:{});
   recorder.ondataavailable=e=>{if(e.data.size>0)chunks.push(e.data);};
   recorder.start(50);
-  states[id]='recording';
-  setInfo(masterLen===null?'錄音中… 點 ■ 停止（第一軌決定 loop 長度）':'錄音中… 點 ■ 停止');
+  trackStates[id] = isOverdub ? 'overdubbing' : 'recording';
+  setInfo(isOverdub ? `T${id+1} overdubbing… 點 ■ 完成疊錄` :
+    masterLen===null ? '錄音中… 點 ■ 停止（決定 loop 長度）' : '錄音中… 點 ■ 停止');
   rerenderTrack(id);
 }
 
-function stopRec(id){
+function finishRec(id){
   return new Promise(res=>{
     if(!recorder||recorder.state==='inactive'){res();return;}
+    const wasOverdub = trackStates[id]==='overdubbing';
     recorder.onstop=async()=>{
       try{
         const blob=new Blob(chunks,{type:chunks[0]?.type||'audio/webm'});
-        const buf=await ctx.decodeAudioData(await blob.arrayBuffer());
-        buffers[id]=buf;
-        if(masterLen===null){masterLen=buf.duration;loopStart=ctx.currentTime;updateStatus();}
-        scheduleTrack(id,buf);
-        states[id]='playing';
-        setInfo('Track '+(id+1)+' playing');
-      }catch(e){states[id]='idle';setInfo('解碼失敗，請重試');}
-      recTrackId=null;rerenderTrack(id);res();
+        const newBuf=await ctx.decodeAudioData(await blob.arrayBuffer());
+
+        if(wasOverdub && buffers[id]){
+          // Mix new recording with existing
+          prevBuffers[id] = buffers[id]; // save for undo
+          buffers[id] = await mixBuffers(buffers[id], newBuf);
+        } else {
+          prevBuffers[id] = null;
+          buffers[id] = newBuf;
+          if(masterLen===null){
+            masterLen=newBuf.duration;
+            loopStart=ctx.currentTime;
+            updateStatus();
+          }
+        }
+        scheduleTrack(id,buffers[id]);
+        trackStates[id]='playing';
+        setInfo(wasOverdub?`T${id+1} overdub 完成`:`T${id+1} playing`);
+      }catch(e){
+        trackStates[id]='idle';
+        setInfo('解碼失敗，請重試');
+      }
+      recTrackId=null; rerenderTrack(id); res();
     };
     recorder.stop();
   });
 }
 
+// ── Tap handler ────────────────────────────────────────
 async function tap(id){
-  const s=states[id];
-  if(s==='idle')await startRec(id);
-  else if(s==='recording')await stopRec(id);
-  else if(s==='playing'){
-    if(gains[id])gains[id].gain.value=0;
-    states[id]='muted';setInfo('Track '+(id+1)+' muted');rerenderTrack(id);
-  }else if(s==='muted'){
-    if(gains[id])gains[id].gain.value=vols[id]??0.8;
-    states[id]='playing';setInfo('Track '+(id+1)+' playing');rerenderTrack(id);
+  const s=trackStates[id];
+  if(s==='idle')                      await startRec(id,false);
+  else if(s==='recording')            await finishRec(id);
+  else if(s==='playing')              await startRec(id,true);   // → overdub
+  else if(s==='overdubbing')          await finishRec(id);
+  else if(s==='muted'){
+    if(gains[id]) gains[id].gain.value=vols[id]??0.8;
+    trackStates[id]='playing'; rerenderTrack(id);
   }
 }
 
+// ── Per-track controls ─────────────────────────────────
+function toggleMute(id){
+  const s=trackStates[id];
+  if(s==='playing'){
+    if(gains[id]) gains[id].gain.value=0;
+    trackStates[id]='muted'; setInfo(`T${id+1} muted`);
+  } else if(s==='muted'){
+    if(gains[id]) gains[id].gain.value=vols[id]??0.8;
+    trackStates[id]='playing'; setInfo(`T${id+1} playing`);
+  }
+  rerenderTrack(id);
+}
+
+function toggleReverse(id){
+  if(!buffers[id]) return;
+  reversed[id]=!reversed[id];
+  if(trackStates[id]==='playing'||trackStates[id]==='muted') scheduleTrack(id,buffers[id]);
+  rerenderTrack(id);
+}
+
+function cycleSpeed(id){
+  if(!buffers[id]) return;
+  const steps=[0.5,1,2];
+  const cur=steps.indexOf(speeds[id]);
+  speeds[id]=steps[(cur+1)%steps.length];
+  if(sources[id]) sources[id].playbackRate.value=speeds[id];
+  rerenderTrack(id);
+}
+
+function undoTrack(id){
+  if(!prevBuffers[id]) return;
+  buffers[id]=prevBuffers[id]; prevBuffers[id]=null;
+  if(trackStates[id]==='playing'||trackStates[id]==='muted') scheduleTrack(id,buffers[id]);
+  setInfo(`T${id+1} undo`); rerenderTrack(id);
+}
+
 function setVol(id,v){
-  vols[id]=trackVols[id]=parseFloat(v);
-  if(gains[id]&&states[id]!=='muted')gains[id].gain.value=vols[id];
+  vols[id]=parseFloat(v);
+  if(gains[id]&&trackStates[id]!=='muted') gains[id].gain.value=vols[id];
 }
 
 function delTrack(id){
   if(sources[id]){try{sources[id].stop();}catch(e){}delete sources[id];}
-  delete gains[id];delete analysers[id];delete buffers[id];
-  states[id]='idle';setInfo('Track '+(id+1)+' cleared');rerenderTrack(id);
+  delete gains[id];delete analysers[id];delete buffers[id];delete prevBuffers[id];
+  trackStates[id]='idle'; reversed[id]=false; speeds[id]=1; loopCounts[id]=0;
+  setInfo(`T${id+1} cleared`); rerenderTrack(id);
 }
 
 function resetAll(){
   if(recorder&&recorder.state!=='inactive'){try{recorder.stop();}catch(e){}}
   Object.values(sources).forEach(s=>{try{s.stop();}catch(e){}});
-  [sources,gains,analysers,buffers].forEach(o=>Object.keys(o).forEach(k=>delete o[k]));
+  [sources,gains,analysers,buffers,prevBuffers].forEach(o=>Object.keys(o).forEach(k=>delete o[k]));
   masterLen=null;loopStart=null;recTrackId=null;
-  for(let i=0;i<MAX;i++){states[i]='idle';trackVols[i]=0.8;vols[i]=0.8;}
-  updateStatus();setInfo('tap ● to start recording');
+  for(let i=0;i<MAX;i++){trackStates[i]='idle';vols[i]=0.8;reversed[i]=false;speeds[i]=1;loopCounts[i]=0;}
+  updateStatus(); setInfo('tap ● to record — tap again to overdub');
   document.getElementById('err').style.display='none';
   renderAll();
 }
 
+// ── Status ─────────────────────────────────────────────
 function updateStatus(){
-  const el=document.getElementById('loop-status');
-  if(masterLen){el.textContent='● '+masterLen.toFixed(2)+'s loop';el.classList.add('running');}
-  else{el.textContent='○ stopped';el.classList.remove('running');}
+  const el=document.getElementById('loop-len');
+  if(masterLen){ el.textContent='● '+masterLen.toFixed(2)+'s loop'; el.style.color='var(--green)'; }
+  else{ el.textContent='○ stopped'; el.style.color=''; }
 }
-function setInfo(t){document.getElementById('info').textContent=t;}
 
-// ── VU meter segments HTML ──────────────────────────────
-function vuHTML(trackId){
-  const color=COLORS[trackId];
-  // 20 segments, varying heights (like real VU)
-  // First 12 = green zone, 13-17 = yellow, 18-20 = red
+// ── Loop counter (update every frame) ─────────────────
+function updateLoopCounts(){
+  if(!masterLen||!loopStart||!ctx) return;
+  const elapsed=(ctx.currentTime-loopStart);
+  for(let i=0;i<MAX;i++){
+    if(trackStates[i]==='playing'){
+      const n=Math.floor(elapsed/masterLen);
+      if(n!==loopCounts[i]){
+        loopCounts[i]=n;
+        const el=document.getElementById('lc'+i);
+        if(el) el.textContent='×'+n;
+      }
+    }
+  }
+}
+
+// ── VU segments HTML ───────────────────────────────────
+function vuHTML(id){
+  const c=COLORS[id];
   const segs=[];
   for(let s=0;s<SEGS;s++){
-    const h=30+Math.round((s/SEGS)*70); // 30% to 100% height
-    let segColor;
-    if(s<12)      segColor=color;
-    else if(s<17) segColor='#FFD60A';
-    else          segColor='#FF3B30';
-    // dim (off state) = very dark version
-    segs.push(`<div class="vu-seg" id="vs${trackId}_${s}"
-      style="height:${h}%;background:${segColor};opacity:0.12"></div>`);
+    const h=28+Math.round((s/SEGS)*72);
+    const col=s<12?c:s<17?'#FFD60A':'#FF3B30';
+    segs.push(`<div class="vu-s" id="vs${id}_${s}" style="height:${h}%;background:${col};opacity:.1"></div>`);
   }
-  return `<div class="vu-wrap" id="vu${trackId}">${segs.join('')}</div>`;
+  return `<div class="vu">${segs.join('')}</div>`;
 }
 
-// ── Render ──────────────────────────────────────────────
+// ── Track HTML ─────────────────────────────────────────
 function trackHTML(i){
-  const s=states[i],c=COLORS[i],v=trackVols[i];
-  const hasContent=!!buffers[i]||s==='recording';
+  const s=trackStates[i],c=COLORS[i],v=vols[i];
+  const has=!!buffers[i];
+  const spd=speeds[i];
+  const spdLabel=spd===0.5?'½x':spd===2?'2x':'1x';
+  const hasPrev=!!prevBuffers[i];
+
   return `
 <div class="track" id="tk${i}" data-state="${s}">
-  <div class="track-main">
-    <button class="rec-btn" data-state="${s}" onclick="tap(${i})">${ICONS[s]}</button>
+  <div class="track-top">
+    <button class="rec-btn" data-s="${s}" onclick="tap(${i})">${ICONS[s]}</button>
     <div class="track-body">
       <div class="track-row1">
-        <span class="track-label" style="color:${s==='idle'?'#2A2A36':c}">T${i+1}</span>
-        <span class="track-state" style="color:${LCOLOR[s]}">${LABELS[s]}</span>
+        <span class="track-label" style="color:${s==='idle'?'#2A2A38':c}">T${i+1}</span>
+        <span class="track-state" style="color:${SCOLOR[s]};font-size:10px;letter-spacing:1px">${SLABELS[s]}</span>
+        <span class="loop-count" id="lc${i}">${has&&s==='playing'?'×'+loopCounts[i]:''}</span>
       </div>
       ${vuHTML(i)}
-      <input type="range" min="0" max="1" step="0.02" value="${v}" oninput="setVol(${i},this.value)">
+      <input type="range" class="track-vol" min="0" max="1" step="0.02" value="${v}" oninput="setVol(${i},this.value)">
     </div>
-    ${hasContent?`<button class="del-btn" onclick="delTrack(${i})">✕</button>`:''}
+    ${has?`<button class="del-btn" onclick="delTrack(${i})">✕</button>`:''}
   </div>
+  ${has?`
+  <div class="track-ctrl">
+    <button class="ctrl-btn mute ${s==='muted'?'active':''}" onclick="toggleMute(${i})">
+      ${s==='muted'?'MUTED':'MUTE'}
+    </button>
+    <button class="ctrl-btn rev ${reversed[i]?'active':''}" onclick="toggleReverse(${i})">
+      ${reversed[i]?'REV ✓':'REV'}
+    </button>
+    <button class="ctrl-btn spd active" onclick="cycleSpeed(${i})" style="color:${spd!==1?'var(--purple)':'var(--muted)'}">
+      ${spdLabel}
+    </button>
+    <button class="ctrl-btn undo" onclick="undoTrack(${i})" ${hasPrev?'':'disabled'} style="opacity:${hasPrev?1:.3}">
+      UNDO
+    </button>
+  </div>`:''}
 </div>`;
 }
 
@@ -266,49 +512,39 @@ function renderAll(){
 function rerenderTrack(id){
   const el=document.getElementById('tk'+id);
   if(!el)return;
-  const tmp=document.createElement('div');
-  tmp.innerHTML=trackHTML(id);
-  el.parentNode.replaceChild(tmp.firstElementChild,el);
+  const t=document.createElement('div');
+  t.innerHTML=trackHTML(id);
+  el.parentNode.replaceChild(t.firstElementChild,el);
 }
 
-// ── VU meter animation ──────────────────────────────────
+// ── RMS helper ─────────────────────────────────────────
 function getRMS(an){
   const d=new Uint8Array(an.frequencyBinCount);
   an.getByteTimeDomainData(d);
-  let rms=0;
-  for(let i=0;i<d.length;i++){const v=(d[i]-128)/128;rms+=v*v;}
-  return Math.sqrt(rms/d.length);
+  let r=0; for(let i=0;i<d.length;i++){const v=(d[i]-128)/128;r+=v*v;}
+  return Math.sqrt(r/d.length);
 }
 
-// Smooth level per track
-const smoothLevel=new Float32Array(MAX);
-
-(function vuLoop(){
+// ── Main animation loop ────────────────────────────────
+(function loop(){
+  updateLoopCounts();
   for(let i=0;i<MAX;i++){
-    const s=states[i];
+    const s=trackStates[i];
     let raw=0;
-    if(s==='recording'&&micAnalyser)      raw=getRMS(micAnalyser);
-    else if(s==='playing'&&analysers[i])  raw=getRMS(analysers[i]);
-
-    // Smooth: fast attack, slow decay
-    smoothLevel[i]=raw>smoothLevel[i]
-      ? raw*0.8+smoothLevel[i]*0.2
-      : smoothLevel[i]*0.85;
-
-    const level=Math.min(1,smoothLevel[i]*5); // scale up
-
-    // Update segments directly in DOM
+    if((s==='recording'||s==='overdubbing')&&micAnalyser) raw=getRMS(micAnalyser);
+    else if(s==='playing'&&analysers[i]) raw=getRMS(analysers[i]);
+    smoothLevels[i]=raw>smoothLevels[i]?raw*.8+smoothLevels[i]*.2:smoothLevels[i]*.84;
+    const lvl=Math.min(1,smoothLevels[i]*5);
     for(let seg=0;seg<SEGS;seg++){
       const el=document.getElementById('vs'+i+'_'+seg);
-      if(!el)continue;
-      const threshold=(seg+1)/SEGS;
-      el.style.opacity=level>=threshold?'1':'0.1';
+      if(el) el.style.opacity = lvl>=(seg+1)/SEGS ? '1' : '.1';
     }
   }
-  requestAnimationFrame(vuLoop);
+  requestAnimationFrame(loop);
 })();
 
 renderAll();
+updateStatus();
 </script>
 </body>
 </html>
