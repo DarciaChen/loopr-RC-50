@@ -131,20 +131,29 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
 .tb-trig[data-s=STANDBY]    {background:#FFD60A14;border-color:#FFD60A44;color:var(--yellow)}
 
 /* DUB */
-.tb-dub{background:var(--dim);border-color:var(--border);color:#333340}
+.tb-dub{background:var(--dim);border-color:var(--border);color:#5A5A6E}
 .tb-dub.dubbing{background:#FF9F0A1A;border-color:#FF9F0A55;color:var(--orange)}
 .tb-dub:disabled{opacity:.2}
 
+/* MUTE */
+.tb-mute{background:var(--dim);border-color:var(--border);color:#5A5A6E}
+.tb-mute.muting{background:#FFD60A1A;border-color:#FFD60A55;color:var(--yellow)}
+
+/* Lang toggle */
+.lang-btn{height:28px;padding:0 12px;border-radius:7px;font-size:10px;font-weight:700;
+  letter-spacing:1px;background:var(--dim);border:1px solid var(--border);color:#888;
+  cursor:pointer;font-family:var(--font)}
+
 /* STOP */
-.tb-stop{background:var(--dim);border-color:var(--border);color:var(--muted)}
+.tb-stop{background:var(--dim);border-color:var(--border);color:#5A5A6E}
 
 /* UNDO / REDO */
-.tb-undo,.tb-redo{background:var(--dim);border-color:var(--border);color:var(--muted)}
+.tb-undo,.tb-redo{background:var(--dim);border-color:var(--border);color:#5A5A6E}
 .tb-undo:not(:disabled):hover,.tb-redo:not(:disabled):hover{border-color:#64D2FF55;color:var(--blue)}
-.tbtn:disabled{opacity:.28;cursor:default}
+.tbtn:disabled{opacity:.38;cursor:default}
 
 /* CLEAR */
-.tb-clear{background:var(--dim);border-color:var(--border);color:var(--muted)}
+.tb-clear{background:var(--dim);border-color:var(--border);color:#5A5A6E}
 .tb-clear:hover{border-color:#FF3B3044;color:var(--red)}
 
 /* Track settings */
@@ -155,7 +164,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
 .dub-mode-grp{display:flex;gap:3px}
 .dm-btn{height:24px;padding:0 8px;border-radius:6px;font-size:9px;font-weight:700;
   letter-spacing:1px;background:var(--dim);border:1px solid var(--border);color:var(--muted);transition:all .15s}
-.dm-btn.active{background:#BF5AF214;border-color:#BF5AF255;color:var(--purple)}
+.dm-btn.active{background:#2A2A38;border-color:#44445A;color:#C8C8D8}
 </style>
 </head>
 <body>
@@ -163,9 +172,12 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
 <!-- Header -->
 <div id="hdr">
   <div class="logo">LOOP<em>R</em><small>RC-50 LOOP STATION</small></div>
-  <div id="hdr-right">
-    <div id="loop-bpm">120 BPM</div>
-    <div id="loop-len">○ no loop</div>
+  <div id="hdr-right" style="display:flex;align-items:center;gap:10px">
+    <div>
+      <div id="loop-bpm">120 BPM</div>
+      <div id="loop-len">○ no loop</div>
+    </div>
+    <button class="lang-btn" id="lang-btn" onclick="toggleLang()">中文</button>
   </div>
 </div>
 
@@ -235,6 +247,39 @@ const TRIG_LABEL = {
 const TRACK_COUNT  = 5;
 const TRACK_COLORS = ['#FF453A','#FF9F0A','#30D158','#64D2FF','#BF5AF2'];
 const TRACK_NAMES  = ['TRACK 1','TRACK 2','TRACK 3','TRACK 4','TRACK 5'];
+
+// ── 語言設定 ──────────────────────────────────────────
+let lang = 'EN';
+const T = {
+  EN: {
+    trig:    { EMPTY:'● REC', RECORDING:'■ STOP', PLAYBACK:'■ STOP', OVERDUBBING:'■ STOP', STOPPED:'▶ RESUME', STANDBY:'… WAIT' },
+    state:   { EMPTY:'EMPTY', RECORDING:'REC ●', PLAYBACK:'PLAY', OVERDUBBING:'DUB ●', STOPPED:'|| PAUSED', STANDBY:'STANDBY' },
+    dub_on:'■ DUB', dub_off:'● DUB',
+    stop:'◼ STOP', undo:'↺ UNDO', redo:'↻ REDO', clear:'✕ CLEAR',
+    mute:'MUTE', muted:'MUTED',
+    one_shot:'ONE SHOT', dub:'DUB', replace:'REPLACE',
+    all_stop:'◼ ALL STOP', clear_all:'CLEAR ALL',
+    loop_sync:'LOOP SYNC', count_in:'COUNT-IN', auto_rec:'AUTO REC',
+    metro:'♩ METRO', quantize:'QUANTIZE',
+    multi:'MULTI', single:'SINGLE', master_vol:'MASTER VOL', mode:'MODE', bpm:'BPM',
+    track:'TRACK', lang_btn:'中文',
+    info_default:'tap TRIGGER to record · DUB to overdub',
+  },
+  ZH: {
+    trig:    { EMPTY:'● 錄音', RECORDING:'■ 停止', PLAYBACK:'■ 停止', OVERDUBBING:'■ 停止', STOPPED:'▶ 繼續', STANDBY:'… 待機' },
+    state:   { EMPTY:'空軌', RECORDING:'錄音中 ●', PLAYBACK:'播放中', OVERDUBBING:'疊錄中 ●', STOPPED:'|| 已暫停', STANDBY:'待機中' },
+    dub_on:'■ 疊錄', dub_off:'● 疊錄',
+    stop:'◼ 停止', undo:'↺ 復原', redo:'↻ 重做', clear:'✕ 清除',
+    mute:'靜音', muted:'靜音中',
+    one_shot:'單次播放', dub:'疊錄', replace:'覆蓋',
+    all_stop:'◼ 全部停止', clear_all:'全部清除',
+    loop_sync:'循環同步', count_in:'數拍進入', auto_rec:'自動錄音',
+    metro:'♩ 節拍器', quantize:'拍點對齊',
+    multi:'多軌', single:'單軌', master_vol:'主音量', mode:'模式', bpm:'BPM',
+    track:'軌道', lang_btn:'Eng',
+    info_default:'點擊 錄音 開始 · 疊錄 用於疊加',
+  }
+};
 const SEGS         = 22;
 
 // ════════════════════════════════════════════════════════
@@ -275,6 +320,7 @@ const tracks = Array.from({length:TRACK_COUNT}, (_, i) => ({
   redoBuffer:   null,      // Undo 後可 Redo 的 buffer
   volume:       0.8,
   oneShot:      false,     // true = 播放一次不循環
+  muted:        false,     // true = 靜音（loop 繼續跑）
   dubMode:      'DUB',     // 'DUB'=疊加 | 'REPLACE'=覆蓋
   loopCount:    0,
   // 即時音訊節點
@@ -591,6 +637,8 @@ async function onTrigger(id) {
           if (o.id !== id && o.state === S.STOPPED && o.buffer) {
             setState(o, S.PLAYBACK);
             playTrack(o, true);
+            // 若該軌之前是靜音狀態，帶起後保持靜音
+            if (o.muted && o.gainNode) o.gainNode.gain.value = 0;
           }
         });
       }
@@ -606,6 +654,7 @@ async function onTrigger(id) {
           if (o.id !== id && o.state === S.STOPPED && o.buffer) {
             setState(o, S.PLAYBACK);
             playTrack(o, true);
+            if (o.muted && o.gainNode) o.gainNode.gain.value = 0;
           }
         });
       }
@@ -619,7 +668,7 @@ async function onTrigger(id) {
       break;
 
     case S.PLAYBACK:
-      // 停止播放 → STOPPED
+      // 停止播放 → STOPPED（MUTE 狀態由 MUTE 按鈕獨立控制，不在此清除）
       fadeStop(t, true);
       break;
 
@@ -729,7 +778,53 @@ function allStop() {
       setTimeout(() => setState(t, t.buffer ? S.STOPPED : S.EMPTY), 10);
     }
   });
-  setInfo('全部軌道已停止');
+  setInfo(T[lang].all_stop);
+}
+
+// MUTE（靜音，loop 繼續跑保持同步）
+function onMute(id) {
+  const t = tracks[id];
+  if (t.state !== S.PLAYBACK) return;
+  t.muted = !t.muted;
+  if (t.gainNode) t.gainNode.gain.value = t.muted ? 0 : t.volume;
+  rerenderTrack(id);
+}
+
+// 語言切換
+function toggleLang() {
+  lang = lang === 'EN' ? 'ZH' : 'EN';
+  setLang();
+}
+
+function setLang() {
+  const t = T[lang];
+  // header lang button
+  const lb = document.getElementById('lang-btn');
+  if (lb) lb.textContent = t.lang_btn;
+  // global toggle buttons
+  const ids = {
+    'tog-sync': t.loop_sync, 'tog-cin': t.count_in, 'tog-arec': t.auto_rec,
+    'tog-metro': t.metro, 'tog-lq': t.quantize,
+    'md-multi': t.multi, 'md-single': t.single,
+  };
+  Object.entries(ids).forEach(([id, txt]) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = txt;
+  });
+  // METRO special case (needs note symbol)
+  const metro = document.getElementById('tog-metro');
+  if (metro) metro.textContent = t.metro;
+  // global action buttons
+  document.querySelectorAll('.g-act-stop').forEach(el => el.textContent = t.all_stop);
+  document.querySelectorAll('.g-act-clear').forEach(el => el.textContent = t.clear_all);
+  // g-labels
+  const labels = document.querySelectorAll('.g-label');
+  const labelTexts = [t.bpm, t.master_vol, t.mode];
+  labels.forEach((el, i) => { if (labelTexts[i]) el.textContent = labelTexts[i]; });
+  // re-render all tracks for track-level text
+  renderAll();
+  // update info
+  document.getElementById('info').textContent = t.info_default;
 }
 
 // Clear All
@@ -859,19 +954,18 @@ function vuHTML(id) {
 // Track Card HTML
 // ════════════════════════════════════════════════════════
 function trackHTML(t) {
-  const {id,state,volume,prevBuffer,redoBuffer,oneShot,dubMode,loopCount} = t;
-  const c       = TRACK_COLORS[id];
+  const {id,state,volume,prevBuffer,redoBuffer,oneShot,dubMode,loopCount,muted} = t;
+  const tc      = TRACK_COLORS[id];
+  const L       = T[lang];
   const hasData = !!t.buffer;
   const canStop = state !== S.EMPTY;
   const canDub  = state === S.PLAYBACK || state === S.OVERDUBBING;
   const isDubbing = state === S.OVERDUBBING;
+  const canMute = state === S.PLAYBACK;
+  const trackName = L.track + ' ' + (id+1);
   const stateColor = {
     EMPTY:'#303038', RECORDING:'var(--red)', PLAYBACK:'var(--green)',
     OVERDUBBING:'var(--orange)', STOPPED:'var(--yellow)', STANDBY:'var(--yellow)'
-  }[state];
-  const stateLabel = {
-    EMPTY:'EMPTY', RECORDING:'REC ●', PLAYBACK:'PLAY',
-    OVERDUBBING:'DUB ●', STOPPED:'|| PAUSED', STANDBY:'STANDBY'
   }[state];
 
   return `
@@ -879,13 +973,13 @@ function trackHTML(t) {
   <div class="tc-hd">
     <div class="led led-${state}"></div>
     <div class="tc-meta">
-      <div class="tc-name" style="color:${state===S.EMPTY?c+'88':c}">${TRACK_NAMES[id]}</div>
-      <div class="tc-state" style="color:${stateColor}">${stateLabel}</div>
+      <div class="tc-name" style="color:${state===S.EMPTY?tc+'88':tc}">${trackName}</div>
+      <div class="tc-state" style="color:${stateColor}">${L.state[state]}</div>
       <div class="tc-loop-ct" id="lc${id}">${state===S.PLAYBACK&&loopCount?'×'+loopCount:''}</div>
     </div>
     ${vuHTML(id)}
   </div>
-  <div class="tc-prog-wrap"><div class="tc-prog-bar" id="pb${id}" style="background:${c}"></div></div>
+  <div class="tc-prog-wrap"><div class="tc-prog-bar" id="pb${id}" style="background:${tc}"></div></div>
   <span class="tc-time" id="tm${id}">-- / --</span>
   <div class="tc-vol">
     <input type="range" min="0" max="1" step="0.02" value="${volume}"
@@ -894,31 +988,35 @@ function trackHTML(t) {
   </div>
   <div class="tc-btns1">
     <button class="tbtn tb-trig" data-s="${state}" onclick="onTrigger(${id})" style="flex:2">
-      ${TRIG_LABEL[state]}
+      ${L.trig[state]}
     </button>
     <button class="tbtn tb-stop" onclick="onStop(${id})"
-      ${canStop?'':'disabled'}>${canStop?'◼ STOP':'◼ STOP'}</button>
+      ${canStop?'':'disabled'}>${L.stop}</button>
     <button class="tbtn tb-dub ${isDubbing?'dubbing':''}" onclick="onDub(${id})"
       ${canDub?'':'disabled'}>
-      ${isDubbing?'■ DUB':'● DUB'}
+      ${isDubbing?L.dub_on:L.dub_off}
+    </button>
+    <button class="tbtn tb-mute ${muted?'muting':''}" onclick="onMute(${id})"
+      ${canMute||muted?'':'disabled'}>
+      ${muted?L.muted:L.mute}
     </button>
   </div>
   <div class="tc-btns2">
     <button class="tbtn tb-undo" onclick="onUndo(${id})"
-      ${prevBuffer?'':'disabled'}>↺ UNDO</button>
+      ${prevBuffer?'':'disabled'}>${L.undo}</button>
     <button class="tbtn tb-redo" onclick="onRedo(${id})"
-      ${redoBuffer?'':'disabled'}>↻ REDO</button>
+      ${redoBuffer?'':'disabled'}>${L.redo}</button>
     <button class="tbtn tb-clear" onclick="onClear(${id})"
       ${hasData||canStop?'':'disabled'}
-      style="opacity:${hasData||canStop?1:.3}">✕ CLEAR</button>
+      style="opacity:${hasData||canStop?1:.3}">${L.clear}</button>
   </div>
   <div class="tc-opts">
     <button class="opt-btn ${oneShot?'on':''}" onclick="toggleOneShot(${id})">
-      ONE SHOT
+      ${L.one_shot}
     </button>
     <div class="dub-mode-grp">
-      <button class="dm-btn ${dubMode==='DUB'?'active':''}" onclick="setDubMode(${id},'DUB')">DUB</button>
-      <button class="dm-btn ${dubMode==='REPLACE'?'active':''}" onclick="setDubMode(${id},'REPLACE')">REPLACE</button>
+      <button class="dm-btn ${dubMode==='DUB'?'active':''}" onclick="setDubMode(${id},'DUB')">${L.dub}</button>
+      <button class="dm-btn ${dubMode==='REPLACE'?'active':''}" onclick="setDubMode(${id},'REPLACE')">${L.replace}</button>
     </div>
   </div>
 </div>`;
