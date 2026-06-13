@@ -8,7 +8,7 @@
 :root{
   --bg:#09090F;--panel:#111119;--card:#1C1C28;--card2:#212130;--border:#1F1F2C;
   --accent:#FFD60A;--green:#30D158;--red:#FF3B30;--orange:#FF9F0A;
-  --yellow:#FFD60A;--blue:#64D2FF;--purple:#BF5AF2;
+  --blue:#64D2FF;--purple:#BF5AF2;--yellow:#FFD60A;
   --text:#E5E5EA;--muted:#48484E;--dim:#1E1E28;
   --font:'SF Mono','Menlo','Courier New',monospace;
 }
@@ -26,45 +26,65 @@ input[type=number]{background:var(--bg);border:1px solid var(--border);color:var
 input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
 
 /* ── Header ── */
-#hdr{padding:18px 16px 13px;border-bottom:1px solid var(--border);
+#hdr{padding:16px 16px 12px;border-bottom:1px solid var(--border);
   display:flex;justify-content:space-between;align-items:center}
 .logo{font-size:20px;font-weight:700;letter-spacing:5px}
 .logo em{color:var(--accent);font-style:normal}
 .logo small{font-size:9px;letter-spacing:2px;color:var(--muted);display:block;margin-top:1px}
-#hdr-right{text-align:right}
-#loop-bpm{font-size:13px;color:var(--accent);font-weight:700;letter-spacing:1px}
-#loop-len{font-size:10px;color:var(--muted);letter-spacing:1px;margin-top:2px}
+.lang-btn{height:26px;padding:0 10px;border-radius:6px;font-size:10px;font-weight:700;
+  letter-spacing:1px;background:var(--dim);border:1px solid var(--border);color:#888}
 
-/* ── Global controls ── */
-#global{padding:11px 16px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:10px}
-.g-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+/* ── Master Clock ── */
+#master-clock{
+  padding:12px 16px 10px;border-bottom:1px solid var(--border);
+  background:#0C0C16;
+}
+#mc-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+#mc-label{font-size:9px;letter-spacing:2px;color:var(--muted)}
+#mc-info{display:flex;gap:12px;align-items:center}
+#mc-pos{font-size:12px;color:var(--accent);font-weight:700;letter-spacing:1px}
+#mc-count{font-size:11px;color:var(--muted);letter-spacing:1px}
+#mc-mode{display:flex;gap:4px}
+.mc-mode-btn{height:24px;padding:0 10px;border-radius:6px;font-size:10px;font-weight:700;
+  letter-spacing:1px;background:var(--dim);border:1px solid var(--border);color:var(--muted);transition:all .15s}
+.mc-mode-btn.active{background:#FFD60A1A;border-color:#FFD60A55;color:var(--accent)}
+
+/* Master Clock progress bar */
+#mc-prog-wrap{
+  height:6px;background:var(--dim);border-radius:3px;
+  overflow:visible;position:relative;cursor:pointer;
+}
+#mc-prog-bar{
+  height:100%;background:var(--accent);border-radius:3px;
+  width:0%;pointer-events:none;transition:width .08s linear;
+}
+#mc-drag-handle{
+  width:12px;height:12px;border-radius:50%;background:#fff;
+  position:absolute;top:-3px;left:0%;transform:translateX(-50%);
+  cursor:grab;pointer-events:auto;
+  box-shadow:0 0 4px #00000088;
+}
+
+/* ── Global Controls ── */
+#global{padding:10px 16px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:8px}
+.g-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .g-block{display:flex;flex-direction:column;gap:4px}
 .g-label{font-size:9px;letter-spacing:2px;color:var(--muted)}
-
 .bpm-row{display:flex;align-items:center;gap:5px}
 .bpm-arr{width:24px;height:24px;border-radius:6px;background:var(--dim);border:1px solid var(--border);
   color:var(--text);font-size:13px;display:flex;align-items:center;justify-content:center}
-
-.mvol-row{display:flex;align-items:center;gap:7px;min-width:110px}
+.mvol-row{display:flex;align-items:center;gap:7px;min-width:100px}
 .mvol-row input{flex:1}
 .mvol-pct{font-size:10px;color:var(--muted);min-width:26px}
-
-/* Toggle buttons */
-.tog{height:28px;padding:0 10px;border-radius:7px;font-size:10px;font-weight:700;
-  letter-spacing:1px;background:var(--dim);border:1px solid var(--border);color:var(--muted);
-  transition:all .15s;white-space:nowrap}
+.tog{height:26px;padding:0 9px;border-radius:6px;font-size:10px;font-weight:700;
+  letter-spacing:1px;background:var(--dim);border:1px solid var(--border);color:var(--muted);transition:all .15s}
 .tog.on{background:#FFD60A1A;border-color:#FFD60A55;color:var(--accent)}
 .tog.green.on{background:#30D1581A;border-color:#30D15855;color:var(--green)}
-.tog.red.on{background:#FF3B301A;border-color:#FF3B3055;color:var(--red)}
-
-/* Mode buttons */
 .mode-grp{display:flex;gap:4px}
-.mode-btn{height:28px;padding:0 10px;border-radius:7px;font-size:10px;font-weight:700;
+.mode-btn{height:26px;padding:0 9px;border-radius:6px;font-size:10px;font-weight:700;
   letter-spacing:1px;background:var(--dim);border:1px solid var(--border);color:var(--muted);transition:all .15s}
 .mode-btn.active{background:#FFD60A1A;border-color:#FFD60A55;color:var(--accent)}
-
-/* Global action buttons */
-.g-act{height:32px;padding:0 14px;border-radius:8px;font-size:11px;font-weight:700;
+.g-act{height:30px;padding:0 12px;border-radius:8px;font-size:10px;font-weight:700;
   letter-spacing:1px;border:1px solid;transition:all .15s}
 .g-act-stop{background:#FF3B301A;border-color:#FF3B3055;color:var(--red)}
 .g-act-clear{background:var(--dim);border-color:var(--border);color:var(--muted)}
@@ -75,16 +95,13 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
 
 /* ── Tracks ── */
 #tracks{padding:10px 12px;display:flex;flex-direction:column;gap:8px}
-
 .tc{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden}
 @keyframes recGlow  {0%,100%{border-color:#FF3B3033}50%{border-color:#FF3B3099}}
 @keyframes dubGlow  {0%,100%{border-color:#FF9F0A33}50%{border-color:#FF9F0A88}}
 @keyframes playGlow {0%,100%{border-color:#1F1F2C}  50%{border-color:#30D15844}}
-@keyframes stbyGlow {0%,100%{border-color:#FFD60A22}50%{border-color:#FFD60A66}}
 .tc[data-st=RECORDING]  {animation:recGlow  1s infinite}
 .tc[data-st=OVERDUBBING]{animation:dubGlow  1.2s infinite}
 .tc[data-st=PLAYBACK]   {animation:playGlow 2s infinite}
-.tc[data-st=STANDBY]    {animation:stbyGlow 0.7s infinite}
 
 /* Track header */
 .tc-hd{padding:11px 12px 8px;display:flex;align-items:center;gap:10px}
@@ -93,8 +110,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
 .led-RECORDING  {background:var(--red);box-shadow:0 0 7px #FF3B30BB}
 .led-PLAYBACK   {background:var(--green);box-shadow:0 0 7px #30D158AA}
 .led-OVERDUBBING{background:var(--orange);box-shadow:0 0 7px #FF9F0AAA}
-.led-STOPPED    {background:var(--yellow);box-shadow:0 0 5px #FFD60A77}
-.led-STANDBY    {background:var(--yellow)}
+.led-STOPPED    {background:#3A3A48}
 .tc-meta{flex:1;min-width:0}
 .tc-name{font-size:11px;font-weight:700;letter-spacing:3px}
 .tc-state{font-size:9px;letter-spacing:2px;margin-top:1px}
@@ -104,31 +120,32 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
 .vu{display:flex;gap:1px;align-items:flex-end;height:16px;flex:1}
 .vu-s{flex:1;border-radius:1px;transition:opacity .05s}
 
-/* Volume */
-.tc-prog-wrap{height:3px;background:#1A1A24;margin:0 12px 5px;border-radius:2px;overflow:hidden}
-.tc-prog-bar{height:100%;width:0%;border-radius:2px;transition:width .08s linear}
-.tc-time{font-size:9px;color:var(--muted);letter-spacing:.5px;padding:0 12px 3px;display:block;min-height:14px}
-.tc-prog-wrap{height:3px;background:#1A1A24;margin:2px 12px 4px;border-radius:2px;overflow:hidden}
+/* Track progress */
+.tc-prog-wrap{height:3px;background:#0C0C14;margin:2px 12px 4px;border-radius:2px;overflow:hidden}
 .tc-prog-bar{height:100%;width:0%;border-radius:2px}
 .tc-time{font-size:9px;color:var(--muted);letter-spacing:.5px;padding:0 12px 2px;display:block;min-height:13px}
+
+/* Volume */
 .tc-vol{padding:0 12px 7px;display:flex;align-items:center;gap:7px}
 .tc-vol input{flex:1}
 .tc-vol-val{font-size:9px;color:var(--muted);min-width:24px;text-align:right}
 
-/* Main buttons row */
-.tc-btns1{padding:0 12px 6px;display:flex;gap:6px}
-.tc-btns2{padding:0 12px 8px;display:flex;gap:6px}
-
+/* Buttons */
+.tc-btns1{padding:0 12px 6px;display:flex;gap:5px}
+.tc-btns2{padding:0 12px 8px;display:flex;gap:5px}
 .tbtn{height:34px;border-radius:9px;font-size:10px;font-weight:700;letter-spacing:1px;
   border:1px solid;transition:all .15s;white-space:nowrap;flex:1}
+.tbtn:disabled{opacity:.25;cursor:default}
 
 /* TRIGGER */
-.tb-trig[data-s=EMPTY]      {background:#1A1A26;border-color:#252532;color:#444450}
+.tb-trig[data-s=EMPTY]      {background:#1A1A26;border-color:#252532;color:#50505E}
 .tb-trig[data-s=RECORDING]  {background:#FF3B301E;border-color:#FF3B3066;color:var(--red)}
-.tb-trig[data-s=OVERDUBBING]{background:#FF3B301E;border-color:#FF3B3066;color:var(--red)}
 .tb-trig[data-s=PLAYBACK]   {background:#30D1581A;border-color:#30D15855;color:var(--green)}
 .tb-trig[data-s=STOPPED]    {background:#FFD60A14;border-color:#FFD60A44;color:var(--yellow)}
-.tb-trig[data-s=STANDBY]    {background:#FFD60A14;border-color:#FFD60A44;color:var(--yellow)}
+.tb-trig[data-s=OVERDUBBING]{background:#1A1A26;border-color:#252532;color:#333340}
+
+/* STOP */
+.tb-stop{background:var(--dim);border-color:var(--border);color:#5A5A6E}
 
 /* DUB */
 .tb-dub{background:var(--dim);border-color:var(--border);color:#5A5A6E}
@@ -139,24 +156,11 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
 .tb-mute{background:var(--dim);border-color:var(--border);color:#5A5A6E}
 .tb-mute.muting{background:#FFD60A1A;border-color:#FFD60A55;color:var(--yellow)}
 
-/* Lang toggle */
-.lang-btn{height:28px;padding:0 12px;border-radius:7px;font-size:10px;font-weight:700;
-  letter-spacing:1px;background:var(--dim);border:1px solid var(--border);color:#888;
-  cursor:pointer;font-family:var(--font)}
-
-/* STOP */
-.tb-stop{background:var(--dim);border-color:var(--border);color:#5A5A6E}
-
-/* UNDO / REDO */
+/* UNDO/REDO/CLEAR */
 .tb-undo,.tb-redo{background:var(--dim);border-color:var(--border);color:#5A5A6E}
-.tb-undo:not(:disabled):hover,.tb-redo:not(:disabled):hover{border-color:#64D2FF55;color:var(--blue)}
-.tbtn:disabled{opacity:.38;cursor:default}
-
-/* CLEAR */
 .tb-clear{background:var(--dim);border-color:var(--border);color:#5A5A6E}
-.tb-clear:hover{border-color:#FF3B3044;color:var(--red)}
 
-/* Track settings */
+/* Track opts */
 .tc-opts{padding:0 12px 10px;display:flex;gap:5px;flex-wrap:wrap}
 .opt-btn{height:24px;padding:0 9px;border-radius:6px;font-size:9px;font-weight:700;
   letter-spacing:1px;background:var(--dim);border:1px solid var(--border);color:var(--muted);transition:all .15s}
@@ -172,21 +176,33 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
 <!-- Header -->
 <div id="hdr">
   <div class="logo">LOOP<em>R</em><small>RC-50 LOOP STATION</small></div>
-  <div id="hdr-right" style="display:flex;align-items:center;gap:10px">
-    <div>
-      <div id="loop-bpm">120 BPM</div>
-      <div id="loop-len">○ no loop</div>
+  <button class="lang-btn" id="lang-btn" onclick="toggleLang()">中文</button>
+</div>
+
+<!-- Master Clock -->
+<div id="master-clock">
+  <div id="mc-top">
+    <div id="mc-label">MASTER CLOCK</div>
+    <div id="mc-info">
+      <span id="mc-pos">-- / --</span>
+      <span id="mc-count"></span>
+      <div id="mc-mode">
+        <button class="mc-mode-btn active" id="mc-live" onclick="setLoopMode('LIVE')">LIVE</button>
+        <button class="mc-mode-btn" id="mc-step" onclick="setLoopMode('STEP')">STEP</button>
+      </div>
     </div>
-    <button class="lang-btn" id="lang-btn" onclick="toggleLang()">中文</button>
+  </div>
+  <div id="mc-prog-wrap">
+    <div id="mc-prog-bar"></div>
+    <div id="mc-drag-handle"></div>
   </div>
 </div>
 
 <!-- Global Controls -->
 <div id="global">
   <div class="g-row">
-    <!-- BPM -->
     <div class="g-block">
-      <div class="g-label">BPM</div>
+      <div class="g-label" id="lbl-bpm">BPM</div>
       <div class="bpm-row">
         <button class="bpm-arr" onclick="changeBPM(-1)">−</button>
         <input type="number" id="bpm-in" value="120" min="40" max="240"
@@ -194,66 +210,45 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
         <button class="bpm-arr" onclick="changeBPM(1)">+</button>
       </div>
     </div>
-    <!-- Master Vol -->
     <div class="g-block" style="flex:1;min-width:100px">
-      <div class="g-label">MASTER VOL</div>
+      <div class="g-label" id="lbl-mvol">MASTER VOL</div>
       <div class="mvol-row">
         <input type="range" min="0" max="1" step="0.02" value="0.85" oninput="setMasterVol(this.value)">
         <span class="mvol-pct" id="mvol-pct">85%</span>
       </div>
     </div>
-    <!-- Play Mode -->
     <div class="g-block">
-      <div class="g-label">MODE</div>
+      <div class="g-label" id="lbl-mode">MODE</div>
       <div class="mode-grp">
         <button class="mode-btn active" id="md-multi" onclick="setMode('MULTI')">MULTI</button>
         <button class="mode-btn" id="md-single" onclick="setMode('SINGLE')">SINGLE</button>
       </div>
     </div>
   </div>
-
   <div class="g-row">
-    <!-- Toggles -->
-    <button class="tog green" id="tog-sync"   onclick="toggle('loopSync')"   title="同步所有軌道長度">LOOP SYNC</button>
-    <button class="tog"       id="tog-cin"    onclick="toggle('countIn')"    title="錄音前計數一小節">COUNT-IN</button>
-    <button class="tog"       id="tog-arec"   onclick="toggle('autoRec')"    title="偵測到聲音才開始錄音">AUTO REC</button>
-    <button class="tog"       id="tog-metro"  onclick="toggle('metro')"      title="節拍器">♩ METRO</button>
-    <button class="tog"       id="tog-lq"     onclick="toggle('loopQuant')"  title="對齊至最近拍點">QUANTIZE</button>
-    <!-- Global actions -->
-    <button class="g-act g-act-stop"  onclick="allStop()">◼ ALL STOP</button>
-    <button class="g-act g-act-clear" onclick="clearAll()">CLEAR ALL</button>
+    <button class="tog green on" id="tog-sync"  onclick="toggle('loopSync')">LOOP SYNC</button>
+    <button class="tog" id="tog-cin"   onclick="toggle('countIn')">COUNT-IN</button>
+    <button class="tog" id="tog-arec"  onclick="toggle('autoRec')">AUTO REC</button>
+    <button class="tog" id="tog-metro" onclick="toggle('metro')">♩ METRO</button>
+    <button class="tog" id="tog-lq"    onclick="toggle('loopQuant')">QUANTIZE</button>
+    <button class="g-act g-act-stop"  onclick="allStop()" id="btn-allstop">◼ ALL STOP</button>
+    <button class="g-act g-act-clear" onclick="clearAll()" id="btn-clearall">CLEAR ALL</button>
   </div>
 </div>
 
 <div id="err"></div>
-<div id="info">tap TRIGGER to record · DUB to overdub</div>
+<div id="info">tap TRIGGER to record</div>
 <div id="tracks"></div>
 
 <script>
 // ════════════════════════════════════════════════════════
-// 狀態常數
+// 語言字典
 // ════════════════════════════════════════════════════════
-const S = {
-  EMPTY:'EMPTY', RECORDING:'RECORDING', PLAYBACK:'PLAYBACK',
-  OVERDUBBING:'OVERDUBBING', STOPPED:'STOPPED', STANDBY:'STANDBY'
-};
-
-// TRIGGER 按鈕文字
-const TRIG_LABEL = {
-  EMPTY:'● REC', RECORDING:'■ STOP', PLAYBACK:'■ STOP',
-  OVERDUBBING:'■ STOP', STOPPED:'▶ RESUME', STANDBY:'… WAIT'
-};
-
-const TRACK_COUNT  = 5;
-const TRACK_COLORS = ['#FF453A','#FF9F0A','#30D158','#64D2FF','#BF5AF2'];
-const TRACK_NAMES  = ['TRACK 1','TRACK 2','TRACK 3','TRACK 4','TRACK 5'];
-
-// ── 語言設定 ──────────────────────────────────────────
 let lang = 'EN';
 const T = {
   EN: {
-    trig:    { EMPTY:'● REC', RECORDING:'■ STOP', PLAYBACK:'■ STOP', OVERDUBBING:'■ STOP', STOPPED:'▶ RESUME', STANDBY:'… WAIT' },
-    state:   { EMPTY:'EMPTY', RECORDING:'REC ●', PLAYBACK:'PLAY', OVERDUBBING:'DUB ●', STOPPED:'|| PAUSED', STANDBY:'STANDBY' },
+    trig: { EMPTY:'● REC', RECORDING:'■ STOP', PLAYBACK:'■ STOP', STOPPED:'▶ PLAY', OVERDUBBING:'' },
+    state: { EMPTY:'EMPTY', RECORDING:'REC ●', PLAYBACK:'PLAY', OVERDUBBING:'DUB ●', STOPPED:'STOPPED' },
     dub_on:'■ DUB', dub_off:'● DUB',
     stop:'◼ STOP', undo:'↺ UNDO', redo:'↻ REDO', clear:'✕ CLEAR',
     mute:'MUTE', muted:'MUTED',
@@ -262,12 +257,13 @@ const T = {
     loop_sync:'LOOP SYNC', count_in:'COUNT-IN', auto_rec:'AUTO REC',
     metro:'♩ METRO', quantize:'QUANTIZE',
     multi:'MULTI', single:'SINGLE', master_vol:'MASTER VOL', mode:'MODE', bpm:'BPM',
-    track:'TRACK', lang_btn:'中文',
-    info_default:'tap TRIGGER to record · DUB to overdub',
+    mc_label:'MASTER CLOCK', mc_waiting:'waiting for first track',
+    live:'LIVE', step:'STEP', track:'TRACK', lang_btn:'中文',
+    info_default:'tap TRIGGER to record',
   },
   ZH: {
-    trig:    { EMPTY:'● 錄音', RECORDING:'■ 停止', PLAYBACK:'■ 停止', OVERDUBBING:'■ 停止', STOPPED:'▶ 繼續', STANDBY:'… 待機' },
-    state:   { EMPTY:'空軌', RECORDING:'錄音中 ●', PLAYBACK:'播放中', OVERDUBBING:'疊錄中 ●', STOPPED:'|| 已暫停', STANDBY:'待機中' },
+    trig: { EMPTY:'● 錄音', RECORDING:'■ 停止', PLAYBACK:'■ 停止', STOPPED:'▶ 播放', OVERDUBBING:'' },
+    state: { EMPTY:'空軌', RECORDING:'錄音中 ●', PLAYBACK:'播放中', OVERDUBBING:'疊錄中 ●', STOPPED:'已停止' },
     dub_on:'■ 疊錄', dub_off:'● 疊錄',
     stop:'◼ 停止', undo:'↺ 復原', redo:'↻ 重做', clear:'✕ 清除',
     mute:'靜音', muted:'靜音中',
@@ -276,64 +272,75 @@ const T = {
     loop_sync:'循環同步', count_in:'數拍進入', auto_rec:'自動錄音',
     metro:'♩ 節拍器', quantize:'拍點對齊',
     multi:'多軌', single:'單軌', master_vol:'主音量', mode:'模式', bpm:'BPM',
-    track:'軌道', lang_btn:'Eng',
-    info_default:'點擊 錄音 開始 · 疊錄 用於疊加',
+    mc_label:'主時鐘', mc_waiting:'等待第一軌',
+    live:'LIVE', step:'STEP', track:'軌道', lang_btn:'Eng',
+    info_default:'點擊 錄音 開始',
   }
 };
+
+// ════════════════════════════════════════════════════════
+// 常數
+// ════════════════════════════════════════════════════════
+const S = {
+  EMPTY:'EMPTY', RECORDING:'RECORDING', PLAYBACK:'PLAYBACK',
+  OVERDUBBING:'OVERDUBBING', STOPPED:'STOPPED', STANDBY:'STANDBY'
+};
+const TRACK_COUNT  = 5;
+const TRACK_COLORS = ['#FF453A','#FF9F0A','#30D158','#64D2FF','#BF5AF2'];
 const SEGS         = 22;
 
 // ════════════════════════════════════════════════════════
 // 全域設定
 // ════════════════════════════════════════════════════════
-let bpm        = 120;
-let playMode   = 'MULTI';
-let loopSync   = true;   // 同步所有軌道長度
-let countIn    = false;  // 錄音前計數一小節
-let autoRec    = false;  // 偵測聲音後自動開始錄音
-let metroOn    = false;  // 節拍器開關
-let loopQuant  = false;  // 錄音結束後對齊至最近拍點
-let metroNext  = 0;      // 下一個計數音的排程時間
+let bpm       = 120;
+let playMode  = 'MULTI';  // MULTI | SINGLE
+let loopMode  = 'LIVE';   // LIVE | STEP
+let loopSync  = true;
+let countIn   = false;
+let autoRec   = false;
+let metroOn   = false;
+let loopQuant = false;
+let metroNext = 0;
 
 // ════════════════════════════════════════════════════════
-// 音訊引擎全域變數
+// 音訊引擎
 // ════════════════════════════════════════════════════════
-let audioCtx    = null;
-let masterGain  = null;
-let micStream   = null;
-let micAnalyser = null;
+let audioCtx   = null;
+let masterGain = null;
+let micStream  = null;
+let micAnalyser= null;
 
-// 主循環控制
+// Master Clock — 從第一軌錄完開始永遠跑
 let masterLoopLen  = null;  // 第一軌決定的循環長度（秒）
-let loopStartTime  = null;  // 循環開始的 audioCtx.currentTime
+let loopStartTime  = null;  // AudioContext 時間基準點
+let clockRunning   = false;
 
-// 自動錄音監控
 let autoRecTimer = null;
 
 // ════════════════════════════════════════════════════════
-// 軌道資料（每軌獨立）
+// 軌道資料
 // ════════════════════════════════════════════════════════
 const tracks = Array.from({length:TRACK_COUNT}, (_, i) => ({
   id:           i,
   state:        S.EMPTY,
-  buffer:       null,      // 當前 AudioBuffer
-  prevBuffer:   null,      // Undo 前的 buffer
-  redoBuffer:   null,      // Undo 後可 Redo 的 buffer
+  buffer:       null,
+  prevBuffer:   null,
+  redoBuffer:   null,
   volume:       0.8,
-  oneShot:      false,     // true = 播放一次不循環
-  muted:        false,     // true = 靜音（loop 繼續跑）
-  dubMode:      'DUB',     // 'DUB'=疊加 | 'REPLACE'=覆蓋
+  muted:        false,
+  oneShot:      false,
+  dubMode:      'DUB',
   loopCount:    0,
-  // 即時音訊節點
   sourceNode:   null,
   gainNode:     null,
   analyserNode: null,
-  // 錄音相關
   mediaRecorder:null,
   recChunks:    [],
-  isFirstTrack: false,     // 是否為決定 masterLoopLen 的第一軌
+  isFirstTrack: false,
+  // LIVE 模式：記錄「預約錄音」的時機
+  recScheduled: false,
 }));
 
-// VU 平滑電平
 const smoothLv = new Float32Array(TRACK_COUNT);
 
 // ════════════════════════════════════════════════════════
@@ -345,14 +352,12 @@ async function initAudio() {
     return true;
   }
   try {
-    audioCtx  = new (window.AudioContext || window.webkitAudioContext)();
+    audioCtx   = new (window.AudioContext || window.webkitAudioContext)();
     masterGain = audioCtx.createGain();
     masterGain.gain.value = 0.85;
     masterGain.connect(audioCtx.destination);
-
-    // 麥克風：關閉回音消除、降噪、自動增益，保留原始音色
     micStream = await navigator.mediaDevices.getUserMedia({
-      audio:{echoCancellation:false, noiseSuppression:false, autoGainControl:false}
+      audio:{ echoCancellation:false, noiseSuppression:false, autoGainControl:false }
     });
     micAnalyser = audioCtx.createAnalyser();
     micAnalyser.fftSize = 256;
@@ -365,10 +370,27 @@ async function initAudio() {
 }
 
 // ════════════════════════════════════════════════════════
-// 緩衝區處理工具
+// Master Clock 工具
 // ════════════════════════════════════════════════════════
 
-// Overdub 疊加：兩層各 × 0.75 防爆音
+// 當前在主循環中的位置（秒）
+function masterClockPos() {
+  if (!clockRunning || !audioCtx) return 0;
+  return (audioCtx.currentTime - loopStartTime) % masterLoopLen;
+}
+
+// 距離下一個 loop 邊界還有幾秒
+function timeToNextBoundary() {
+  if (!masterLoopLen) return 0;
+  const pos = masterClockPos();
+  return masterLoopLen - pos;
+}
+
+// ════════════════════════════════════════════════════════
+// 音訊緩衝區工具
+// ════════════════════════════════════════════════════════
+
+// Overdub 混音
 async function mixBuffers(existing, newBuf) {
   const len = Math.max(existing.length, newBuf.length);
   const ch  = Math.max(existing.numberOfChannels, newBuf.numberOfChannels);
@@ -383,17 +405,20 @@ async function mixBuffers(existing, newBuf) {
   return out;
 }
 
-// Loop Sync：將錄音裁剪或補零至 masterLoopLen
-function fitToMasterLen(buf) {
+// Loop Sync：補靜音到 masterLoopLen，起點對齊（前面補靜音）
+function fitToMasterLen(buf, offsetSec) {
   if (!masterLoopLen) return buf;
-  const targetLen = Math.round(masterLoopLen * audioCtx.sampleRate);
-  if (Math.abs(buf.length - targetLen) < 100) return buf; // 已夠接近
-  const out = audioCtx.createBuffer(buf.numberOfChannels, targetLen, audioCtx.sampleRate);
-  for (let c = 0; c < buf.numberOfChannels; c++) {
+  const sr        = audioCtx.sampleRate;
+  const targetLen = Math.round(masterLoopLen * sr);
+  const offsetLen = Math.round((offsetSec || 0) * sr);
+  const ch        = buf.numberOfChannels;
+  const out       = audioCtx.createBuffer(ch, targetLen, sr);
+  for (let c = 0; c < ch; c++) {
     const src = buf.getChannelData(c);
     const dst = out.getChannelData(c);
-    dst.set(src.subarray(0, Math.min(src.length, targetLen)));
-    // 超過原始長度的部分保持 0（靜音補位）
+    // 從 offsetLen 位置開始放入錄音內容，前面是靜音
+    const copyLen = Math.min(src.length, targetLen - offsetLen);
+    if (copyLen > 0) dst.set(src.subarray(0, copyLen), offsetLen);
   }
   return out;
 }
@@ -406,32 +431,31 @@ function stopSource(t) {
     try { t.sourceNode.stop(); } catch(e) {}
     t.sourceNode = null;
   }
+  // 同時斷開 gain/analyser 避免記憶體洩漏
+  if (t.gainNode)     { try { t.gainNode.disconnect(); }     catch(e) {} }
+  if (t.analyserNode) { try { t.analyserNode.disconnect(); } catch(e) {} }
 }
 
-// 淡出後停止（Stop Mode = Fade Out）
-function fadeStop(t, thenStopped) {
-  if (!t.gainNode) { stopSource(t); if(thenStopped) setState(t, S.STOPPED); return; }
+function fadeStop(t, callback) {
+  if (!t.gainNode) { stopSource(t); if(callback) callback(); return; }
   const now = audioCtx.currentTime;
   t.gainNode.gain.cancelScheduledValues(now);
-  t.gainNode.gain.setValueAtTime(t.gainNode.gain.value, now);
-  t.gainNode.gain.linearRampToValueAtTime(0, now + 0.25);
-  setTimeout(() => {
-    stopSource(t);
-    if (thenStopped) setState(t, S.STOPPED);
-  }, 280);
+  t.gainNode.gain.setValueAtTime(t.gainNode.gain.value || t.volume, now);
+  t.gainNode.gain.linearRampToValueAtTime(0.001, now + 0.2);
+  setTimeout(() => { stopSource(t); if(callback) callback(); }, 230);
 }
 
-// 排程播放（自動對齊至主循環位置）
-function playTrack(t, fadeIn = false) {
+// 排程播放，對齊 Master Clock 當前位置
+function playTrack(t, fadeIn) {
   stopSource(t);
+  if (!t.buffer || !audioCtx) return;
 
   const gain = audioCtx.createGain();
-  // 淡入：從 0 漸升至正常音量
   if (fadeIn) {
-    gain.gain.setValueAtTime(0, audioCtx.currentTime);
-    gain.gain.linearRampToValueAtTime(t.volume, audioCtx.currentTime + 0.25);
+    gain.gain.setValueAtTime(0.001, audioCtx.currentTime);
+    gain.gain.linearRampToValueAtTime(t.muted ? 0 : t.volume, audioCtx.currentTime + 0.2);
   } else {
-    gain.gain.value = t.volume;
+    gain.gain.value = t.muted ? 0 : t.volume;
   }
   t.gainNode = gain;
 
@@ -446,36 +470,57 @@ function playTrack(t, fadeIn = false) {
   src.connect(gain);
   t.sourceNode = src;
 
-  // 計算當前在主循環中的偏移量，確保同步
+  // 對齊 Master Clock 當前位置
   const now    = audioCtx.currentTime;
-  const offset = loopStartTime
+  const offset = clockRunning
     ? ((now - loopStartTime) % masterLoopLen) % t.buffer.duration
     : 0;
   src.start(now, offset);
 
-  // ONE SHOT：播放完自動切到 STOPPED
   if (t.oneShot) {
     src.onended = () => { t.sourceNode = null; setState(t, S.STOPPED); };
   }
 }
 
 // ════════════════════════════════════════════════════════
-// 計數音（Count-In）
+// 節拍器
+// ════════════════════════════════════════════════════════
+function scheduleMetro() {
+  if (!metroOn || !audioCtx) return;
+  const now = audioCtx.currentTime;
+  const iv  = 60 / bpm;
+  if (metroNext < now) metroNext = now;
+  while (metroNext < now + 0.4) {
+    const osc = audioCtx.createOscillator();
+    const g   = audioCtx.createGain();
+    const beat = Math.round((metroNext - (loopStartTime || now)) / iv) % 4;
+    osc.frequency.value = beat === 0 ? 1320 : 660;
+    g.gain.setValueAtTime(0.25, metroNext);
+    g.gain.exponentialRampToValueAtTime(0.001, metroNext + 0.06);
+    osc.connect(g); g.connect(audioCtx.destination);
+    osc.start(metroNext); osc.stop(metroNext + 0.07);
+    metroNext += iv;
+  }
+  setTimeout(scheduleMetro, 180);
+}
+
+// ════════════════════════════════════════════════════════
+// Count-In
 // ════════════════════════════════════════════════════════
 function playCountIn(beats, callback) {
   if (!audioCtx) { callback(); return; }
-  const interval = 60 / bpm;
+  const iv = 60 / bpm;
   for (let i = 0; i < beats; i++) {
     const osc = audioCtx.createOscillator();
     const g   = audioCtx.createGain();
-    osc.frequency.value = i === 0 ? 1320 : 880; // 第一拍高音
-    const t0 = audioCtx.currentTime + i * interval + 0.02;
+    const t0  = audioCtx.currentTime + i * iv + 0.02;
+    osc.frequency.value = i === 0 ? 1320 : 880;
     g.gain.setValueAtTime(0.4, t0);
     g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.08);
     osc.connect(g); g.connect(audioCtx.destination);
     osc.start(t0); osc.stop(t0 + 0.09);
   }
-  setTimeout(callback, beats * interval * 1000 + 50);
+  setTimeout(callback, beats * iv * 1000 + 50);
 }
 
 // ════════════════════════════════════════════════════════
@@ -486,212 +531,199 @@ function getMime() {
     .find(t => !t || MediaRecorder.isTypeSupported(t)) || '';
 }
 
-// 實際啟動 MediaRecorder
 function doStartRecording(t) {
   t.recChunks = [];
   const mime  = getMime();
   const rec   = new MediaRecorder(micStream, mime ? {mimeType:mime} : {});
-  rec.ondataavailable = e => { if(e.data.size>0) t.recChunks.push(e.data); };
+  rec.ondataavailable = e => { if (e.data.size > 0) t.recChunks.push(e.data); };
   rec.start(50);
   t.mediaRecorder = rec;
 }
 
-// Auto Rec 監控：等待聲音超過閾值
+async function startRecording(t, isOverdub) {
+  if (!await initAudio()) return;
+  t.isFirstTrack = (!isOverdub && !clockRunning);
+
+  const doRec = () => {
+    if (autoRec && !isOverdub) {
+      setState(t, S.STANDBY);
+      startAutoRecMonitor(t);
+      setInfo(T[lang].info_default);
+    } else {
+      doStartRecording(t);
+      setState(t, isOverdub ? S.OVERDUBBING : S.RECORDING);
+    }
+  };
+
+  if (loopMode === 'LIVE' && clockRunning && !isOverdub) {
+    // LIVE 模式：等到下一個 loop 邊界才開始錄
+    t.recScheduled = true;
+    setState(t, S.STANDBY);
+    setInfo('LIVE: waiting for loop boundary…');
+    const waitMs = timeToNextBoundary() * 1000;
+    setTimeout(() => {
+      if (t.recScheduled) {
+        t.recScheduled = false;
+        doStartRecording(t);
+        setState(t, S.RECORDING);
+        setInfo('Track ' + (t.id+1) + ' recording…');
+      }
+    }, Math.max(0, waitMs - 20));
+  } else if (countIn && !isOverdub) {
+    setState(t, S.STANDBY);
+    setInfo('Count-in…');
+    playCountIn(4, doRec);
+  } else {
+    doRec();
+  }
+}
+
 function startAutoRecMonitor(t) {
   clearInterval(autoRecTimer);
   autoRecTimer = setInterval(() => {
     if (!micAnalyser) return;
     if (getRMS(micAnalyser) > 0.015) {
-      clearInterval(autoRecTimer);
-      autoRecTimer = null;
+      clearInterval(autoRecTimer); autoRecTimer = null;
       doStartRecording(t);
       t.state = S.RECORDING;
       rerenderTrack(t.id);
-      setInfo('Track ' + (t.id+1) + ' 偵測到聲音，開始錄音');
     }
   }, 40);
 }
 
-// 主錄音啟動函式（含 Count-In / Auto Rec 分支）
-async function startRecording(t, isOverdub) {
-  if (!await initAudio()) return;
-
-  t.isFirstTrack = (!isOverdub && masterLoopLen === null);
-
-  const proceed = () => {
-    if (autoRec && !isOverdub) {
-      // Auto Rec：進入待機，等待聲音
-      setState(t, S.STANDBY);
-      startAutoRecMonitor(t);
-      setInfo('Track ' + (t.id+1) + ' 待機中… 有聲音即自動開始錄音');
-    } else {
-      doStartRecording(t);
-      setState(t, isOverdub ? S.OVERDUBBING : S.RECORDING);
-      setInfo('Track ' + (t.id+1) + (isOverdub ? ' 疊錄中…' : ' 錄音中…' +
-        (t.isFirstTrack ? '（第一軌決定 loop 長度）':'')));
-    }
-  };
-
-  if (countIn && !isOverdub) {
-    setInfo('Track ' + (t.id+1) + ' 計數中…');
-    playCountIn(4, proceed);
-  } else {
-    proceed();
-  }
-}
-
-// 結束錄音並處理緩衝區
+// 錄音結束，處理 buffer
 function stopRecording(t, isOverdub) {
   return new Promise(resolve => {
-    // 清除 Auto Rec 監控
     if (autoRecTimer) { clearInterval(autoRecTimer); autoRecTimer = null; }
+    t.recScheduled = false;
 
     const rec = t.mediaRecorder;
     if (!rec || rec.state === 'inactive') {
-      // 若根本還沒錄到（在待機或計數中被中斷）
       setState(t, t.buffer ? S.STOPPED : S.EMPTY);
       resolve(); return;
     }
 
-    rec.onstop = async () => {
-      try {
-        const blob   = new Blob(t.recChunks, {type: t.recChunks[0]?.type || 'audio/webm'});
-        let newBuf   = await audioCtx.decodeAudioData(await blob.arrayBuffer());
+    const doStop = () => {
+      rec.onstop = async () => {
+        try {
+          const blob   = new Blob(t.recChunks, {type: t.recChunks[0]?.type || 'audio/webm'});
+          let newBuf   = await audioCtx.decodeAudioData(await blob.arrayBuffer());
 
-        if (isOverdub && t.buffer) {
-          // ── 疊錄處理 ──
-          t.redoBuffer = null;
-          t.prevBuffer = t.buffer; // 保存供 Undo 用
-
-          if (t.dubMode === 'REPLACE') {
-            // REPLACE 模式：直接用新錄音覆蓋（不混合）
-            if (loopSync && masterLoopLen) newBuf = fitToMasterLen(newBuf);
-            t.buffer = newBuf;
+          if (isOverdub && t.buffer) {
+            t.redoBuffer = null;
+            t.prevBuffer = t.buffer;
+            if (loopSync && masterLoopLen) newBuf = fitToMasterLen(newBuf, 0);
+            t.buffer = t.dubMode === 'REPLACE'
+              ? newBuf
+              : await mixBuffers(t.buffer, newBuf);
           } else {
-            // DUB 模式：混合新舊音訊
-            if (loopSync && masterLoopLen) newBuf = fitToMasterLen(newBuf);
-            t.buffer = await mixBuffers(t.buffer, newBuf);
-          }
-        } else {
-          // ── 全新錄音 ──
-          t.prevBuffer = null;
-          t.redoBuffer = null;
+            t.prevBuffer = null;
+            t.redoBuffer = null;
 
-          // 第一軌：設定主循環長度
-          if (t.isFirstTrack) {
-            let rawLen = newBuf.duration;
-            // Loop Quantize：將錄音長度對齊至最近的拍點
-            if (loopQuant && bpm > 0) {
-              const beatLen = 60 / bpm;
-              const beats   = Math.max(1, Math.round(rawLen / beatLen));
-              rawLen        = beats * beatLen;
+            if (t.isFirstTrack) {
+              // 第一軌決定 Master Clock 長度
+              let rawLen = newBuf.duration;
+              if (loopQuant && bpm > 0) {
+                const beatLen = 60 / bpm;
+                rawLen = Math.max(beatLen, Math.round(rawLen / beatLen) * beatLen);
+              }
+              masterLoopLen = rawLen;
+              loopStartTime = audioCtx.currentTime;
+              clockRunning  = true;
+              updateMasterClock();
+              if (metroOn) scheduleMetro();
+            } else if (loopSync && masterLoopLen) {
+              // 非第一軌：記錄錄音開始時的 loop 偏移，補靜音對齊
+              newBuf = fitToMasterLen(newBuf, t._recStartOffset || 0);
             }
-            masterLoopLen = rawLen;
-            loopStartTime = audioCtx.currentTime;
-            updateGlobalStatus();
-            if (metroOn) scheduleMetro();
-          } else if (loopSync && masterLoopLen) {
-            // 非第一軌 + Loop Sync 開啟：裁切或補零對齊
-            newBuf = fitToMasterLen(newBuf);
+            t.buffer = newBuf;
           }
-          t.buffer = newBuf;
-        }
 
-        playTrack(t, true); // 淡入開始播放
-        setState(t, S.PLAYBACK);
-        setInfo('Track ' + (t.id+1) + (isOverdub ? ' 疊錄完成' : ' 播放中'));
-      } catch(err) {
-        showErr('解碼失敗：' + err.message);
-        setState(t, t.buffer ? S.STOPPED : S.EMPTY);
-      }
-      resolve();
+          // LIVE 模式自動播放，STEP 模式停在 STOPPED
+          if (loopMode === 'LIVE' || isOverdub) {
+            playTrack(t, true);
+            setState(t, S.PLAYBACK);
+
+            // LIVE 模式：Simul-Start
+            if (loopMode === 'LIVE' && !isOverdub && playMode === 'MULTI') {
+              tracks.forEach(o => {
+                if (o.id !== t.id && o.state === S.STOPPED && o.buffer) {
+                  playTrack(o, true);
+                  setState(o, S.PLAYBACK);
+                  if (o.muted && o.gainNode) o.gainNode.gain.value = 0;
+                }
+              });
+            }
+          } else {
+            // STEP 模式：停在 STOPPED
+            setState(t, S.STOPPED);
+          }
+
+        } catch(err) {
+          showErr('解碼失敗：' + err.message);
+          setState(t, t.buffer ? S.STOPPED : S.EMPTY);
+        }
+        resolve();
+      };
+      rec.stop();
     };
-    rec.stop();
+
+    if (loopMode === 'LIVE' && clockRunning && !isOverdub) {
+      // LIVE 模式：等到 loop 邊界才停止錄音
+      const waitMs = timeToNextBoundary() * 1000;
+      setTimeout(doStop, Math.max(0, waitMs - 20));
+    } else {
+      doStop();
+    }
   });
 }
 
 // ════════════════════════════════════════════════════════
-// 狀態機操作
+// 狀態機
 // ════════════════════════════════════════════════════════
 
 // TRIGGER 按鈕
 async function onTrigger(id) {
   const t = tracks[id];
 
+  // OVERDUBBING：TRIGGER 無效（disabled，此處為保險）
+  if (t.state === S.OVERDUBBING) return;
+
   // SINGLE 模式：停止其他正在播放的軌道
   if (playMode === 'SINGLE') {
     tracks.forEach(o => {
-      if (o.id !== id && (o.state===S.PLAYBACK||o.state===S.OVERDUBBING)) {
-        fadeStop(o, true);
+      if (o.id !== id && o.state === S.PLAYBACK) {
+        fadeStop(o, () => setState(o, S.STOPPED));
       }
     });
   }
 
   switch(t.state) {
+
     case S.EMPTY:
-      // EMPTY → 開始錄音
-      await startRecording(t, false);
-      // Simul-Start：Multi 模式下，錄音開始時同步啟動其他有錄音的停止軌道
-      if (playMode === 'MULTI') {
-        tracks.forEach(o => {
-          if (o.id !== id && o.state === S.STOPPED && o.buffer) {
-            setState(o, S.PLAYBACK);
-            playTrack(o, true);
-            // 若該軌之前是靜音狀態，帶起後保持靜音
-            if (o.muted && o.gainNode) o.gainNode.gain.value = 0;
-          }
-        });
+      // 重錄第一軌（無 Master Clock）→ 清空所有軌道
+      if (!clockRunning) {
+        clearAllTracks();
       }
+      // 記錄開始錄音時的 loop 位置（非第一軌用）
+      t._recStartOffset = clockRunning ? masterClockPos() : 0;
+      await startRecording(t, false);
       break;
 
     case S.RECORDING:
-      // 停止錄音 → 開始播放
-      setInfo('Track ' + (id+1) + ' 處理中…');
-      await stopRecording(t, false);
-      // Simul-Start：錄音完成後，Multi 模式啟動其他停止中的軌道
-      if (playMode === 'MULTI') {
-        tracks.forEach(o => {
-          if (o.id !== id && o.state === S.STOPPED && o.buffer) {
-            setState(o, S.PLAYBACK);
-            playTrack(o, true);
-            if (o.muted && o.gainNode) o.gainNode.gain.value = 0;
-          }
-        });
-      }
-      break;
-
     case S.STANDBY:
-      // 取消自動錄音待機
-      if (autoRecTimer) { clearInterval(autoRecTimer); autoRecTimer = null; }
-      setState(t, S.EMPTY);
-      setInfo('Track ' + (id+1) + ' 取消待機');
+      await stopRecording(t, false);
       break;
 
     case S.PLAYBACK:
-      // 停止播放 → STOPPED（MUTE 狀態由 MUTE 按鈕獨立控制，不在此清除）
-      fadeStop(t, true);
+      // 停止播放 → STOPPED
+      fadeStop(t, () => setState(t, S.STOPPED));
       break;
 
     case S.STOPPED:
-      // 重新開始播放
-      if (t.buffer) {
-        setState(t, S.PLAYBACK);
-        playTrack(t, true);
-        setInfo('Track ' + (id+1) + ' 重新播放');
-      }
-      break;
-
-    case S.OVERDUBBING:
-      // TRIGGER 在疊錄中 = 取消疊錄（直接停止錄音，丟棄內容）
-      if (autoRecTimer) { clearInterval(autoRecTimer); autoRecTimer = null; }
-      if (t.mediaRecorder && t.mediaRecorder.state !== 'inactive') {
-        t.mediaRecorder.onstop = () => {
-          setState(t, S.PLAYBACK);
-          playTrack(t);
-        };
-        t.mediaRecorder.stop();
-      }
-      setInfo('Track ' + (id+1) + ' 疊錄已取消');
+      // 對齊 Master Clock 重新播放
+      playTrack(t, true);
+      setState(t, S.PLAYBACK);
       break;
   }
 }
@@ -699,31 +731,54 @@ async function onTrigger(id) {
 // STOP 按鈕
 async function onStop(id) {
   const t = tracks[id];
-  if (t.state === S.RECORDING || t.state === S.OVERDUBBING || t.state === S.STANDBY) {
-    if (autoRecTimer) { clearInterval(autoRecTimer); autoRecTimer = null; }
-    if (t.mediaRecorder && t.mediaRecorder.state !== 'inactive') {
-      t.mediaRecorder.onstop = () => {};
-      t.mediaRecorder.stop();
-    }
+  switch(t.state) {
+    case S.RECORDING:
+    case S.STANDBY:
+      // 放棄錄音，回到 EMPTY
+      t.recScheduled = false;
+      if (autoRecTimer) { clearInterval(autoRecTimer); autoRecTimer = null; }
+      if (t.mediaRecorder && t.mediaRecorder.state !== 'inactive') {
+        t.mediaRecorder.onstop = () => {};
+        t.mediaRecorder.stop();
+      }
+      setState(t, S.EMPTY);
+      setInfo('Track ' + (id+1) + ' cancelled');
+      break;
+
+    case S.PLAYBACK:
+      fadeStop(t, () => setState(t, S.STOPPED));
+      break;
+
+    case S.OVERDUBBING:
+      // 放棄疊錄，回到播放
+      if (t.mediaRecorder && t.mediaRecorder.state !== 'inactive') {
+        t.mediaRecorder.onstop = () => {
+          playTrack(t);
+          setState(t, S.PLAYBACK);
+        };
+        t.mediaRecorder.stop();
+      }
+      break;
   }
-  fadeStop(t, false);
-  setTimeout(() => {
-    setState(t, t.buffer ? S.STOPPED : S.EMPTY);
-    setInfo('Track ' + (id+1) + ' 已停止');
-  }, 10);
 }
 
-// DUB 按鈕（獨立疊錄控制）
+// DUB 按鈕
 async function onDub(id) {
   const t = tracks[id];
   if (t.state === S.PLAYBACK) {
-    // 開始疊錄（保持播放中）
     await startRecording(t, true);
   } else if (t.state === S.OVERDUBBING) {
-    // 完成疊錄，混音後繼續播放
-    setInfo('Track ' + (id+1) + ' 混音中…');
     await stopRecording(t, true);
   }
+}
+
+// MUTE（只由此控制，其他操作不影響）
+function onMute(id) {
+  const t = tracks[id];
+  if (t.state !== S.PLAYBACK) return;
+  t.muted = !t.muted;
+  if (t.gainNode) t.gainNode.gain.value = t.muted ? 0 : t.volume;
+  rerenderTrack(id);
 }
 
 // UNDO
@@ -734,7 +789,7 @@ function onUndo(id) {
   t.buffer     = t.prevBuffer;
   t.prevBuffer = null;
   if (t.state === S.PLAYBACK || t.state === S.STOPPED) playTrack(t);
-  setInfo('Track ' + (id+1) + ' Undo 完成（可 Redo）');
+  setInfo('Track ' + (id+1) + ' undone');
   rerenderTrack(id);
 }
 
@@ -746,94 +801,59 @@ function onRedo(id) {
   t.buffer     = t.redoBuffer;
   t.redoBuffer = null;
   if (t.state === S.PLAYBACK || t.state === S.STOPPED) playTrack(t);
-  setInfo('Track ' + (id+1) + ' Redo 完成');
+  setInfo('Track ' + (id+1) + ' redone');
   rerenderTrack(id);
 }
 
 // 單軌清除
 function onClear(id) {
   const t = tracks[id];
+  t.recScheduled = false;
   if (autoRecTimer && t.state === S.STANDBY) { clearInterval(autoRecTimer); autoRecTimer = null; }
   if (t.mediaRecorder && t.mediaRecorder.state !== 'inactive') {
     t.mediaRecorder.onstop = () => {};
     t.mediaRecorder.stop();
   }
   stopSource(t);
-  t.state = S.EMPTY; t.buffer = null; t.prevBuffer = null; t.redoBuffer = null;
-  t.loopCount = 0; t.gainNode = null; t.analyserNode = null;
-  setInfo('Track ' + (id+1) + ' 已清除');
+  Object.assign(t, {
+    state:S.EMPTY, buffer:null, prevBuffer:null, redoBuffer:null,
+    muted:false, loopCount:0, gainNode:null, analyserNode:null,
+    mediaRecorder:null, recChunks:[], recScheduled:false, _recStartOffset:0
+  });
   rerenderTrack(id);
+}
+
+// 清空所有軌道（不重置 Master Clock）
+function clearAllTracks() {
+  tracks.forEach(t => onClear(t.id));
 }
 
 // All Stop
 function allStop() {
   if (autoRecTimer) { clearInterval(autoRecTimer); autoRecTimer = null; }
   tracks.forEach(t => {
+    t.recScheduled = false;
     if (t.mediaRecorder && t.mediaRecorder.state !== 'inactive') {
       t.mediaRecorder.onstop = () => {};
       t.mediaRecorder.stop();
     }
     if (t.state !== S.EMPTY) {
-      fadeStop(t, false);
-      setTimeout(() => setState(t, t.buffer ? S.STOPPED : S.EMPTY), 10);
+      fadeStop(t, () => setState(t, t.buffer ? S.STOPPED : S.EMPTY));
     }
+    // MUTE 狀態保留
   });
   setInfo(T[lang].all_stop);
 }
 
-// MUTE（靜音，loop 繼續跑保持同步）
-function onMute(id) {
-  const t = tracks[id];
-  if (t.state !== S.PLAYBACK) return;
-  t.muted = !t.muted;
-  if (t.gainNode) t.gainNode.gain.value = t.muted ? 0 : t.volume;
-  rerenderTrack(id);
-}
-
-// 語言切換
-function toggleLang() {
-  lang = lang === 'EN' ? 'ZH' : 'EN';
-  setLang();
-}
-
-function setLang() {
-  const t = T[lang];
-  // header lang button
-  const lb = document.getElementById('lang-btn');
-  if (lb) lb.textContent = t.lang_btn;
-  // global toggle buttons
-  const ids = {
-    'tog-sync': t.loop_sync, 'tog-cin': t.count_in, 'tog-arec': t.auto_rec,
-    'tog-metro': t.metro, 'tog-lq': t.quantize,
-    'md-multi': t.multi, 'md-single': t.single,
-  };
-  Object.entries(ids).forEach(([id, txt]) => {
-    const el = document.getElementById(id);
-    if (el) el.textContent = txt;
-  });
-  // METRO special case (needs note symbol)
-  const metro = document.getElementById('tog-metro');
-  if (metro) metro.textContent = t.metro;
-  // global action buttons
-  document.querySelectorAll('.g-act-stop').forEach(el => el.textContent = t.all_stop);
-  document.querySelectorAll('.g-act-clear').forEach(el => el.textContent = t.clear_all);
-  // g-labels
-  const labels = document.querySelectorAll('.g-label');
-  const labelTexts = [t.bpm, t.master_vol, t.mode];
-  labels.forEach((el, i) => { if (labelTexts[i]) el.textContent = labelTexts[i]; });
-  // re-render all tracks for track-level text
-  renderAll();
-  // update info
-  document.getElementById('info').textContent = t.info_default;
-}
-
-// Clear All
+// Clear All（重置 Master Clock）
 function clearAll() {
   if (autoRecTimer) { clearInterval(autoRecTimer); autoRecTimer = null; }
-  tracks.forEach(t => onClear(t.id));
-  masterLoopLen = null; loopStartTime = null;
-  updateGlobalStatus();
-  setInfo('全部清除');
+  clearAllTracks();
+  masterLoopLen = null;
+  loopStartTime = null;
+  clockRunning  = false;
+  updateMasterClock();
+  setInfo(T[lang].clear_all);
 }
 
 // ════════════════════════════════════════════════════════
@@ -841,20 +861,12 @@ function clearAll() {
 // ════════════════════════════════════════════════════════
 function setTrackVol(id, v) {
   const t = tracks[id]; t.volume = parseFloat(v);
-  if (t.gainNode && t.state !== S.STOPPED) t.gainNode.gain.value = t.volume;
+  if (t.gainNode && !t.muted) t.gainNode.gain.value = t.volume;
   const el = document.getElementById('vv'+id);
   if (el) el.textContent = Math.round(t.volume*100)+'%';
 }
-
-function toggleOneShot(id) {
-  tracks[id].oneShot = !tracks[id].oneShot;
-  rerenderTrack(id);
-}
-
-function setDubMode(id, mode) {
-  tracks[id].dubMode = mode;
-  rerenderTrack(id);
-}
+function toggleOneShot(id) { tracks[id].oneShot = !tracks[id].oneShot; rerenderTrack(id); }
+function setDubMode(id, mode) { tracks[id].dubMode = mode; rerenderTrack(id); }
 
 // ════════════════════════════════════════════════════════
 // 全域設定
@@ -863,88 +875,138 @@ function setMasterVol(v) {
   if (masterGain) masterGain.gain.value = parseFloat(v);
   document.getElementById('mvol-pct').textContent = Math.round(v*100)+'%';
 }
-
 function changeBPM(d) {
   bpm = Math.max(40, Math.min(240, bpm + d));
   document.getElementById('bpm-in').value = bpm;
-  document.getElementById('loop-bpm').textContent = bpm + ' BPM';
 }
-function setBPM(v) {
-  bpm = Math.max(40, Math.min(240, parseInt(v)||120));
-  document.getElementById('loop-bpm').textContent = bpm + ' BPM';
-}
-
+function setBPM(v) { bpm = Math.max(40, Math.min(240, parseInt(v)||120)); }
 function setMode(m) {
   playMode = m;
   document.getElementById('md-multi').classList.toggle('active', m==='MULTI');
   document.getElementById('md-single').classList.toggle('active', m==='SINGLE');
 }
-
+function setLoopMode(m) {
+  loopMode = m;
+  document.getElementById('mc-live').classList.toggle('active', m==='LIVE');
+  document.getElementById('mc-step').classList.toggle('active', m==='STEP');
+}
 function toggle(key) {
-  const map = {loopSync:'tog-sync', countIn:'tog-cin', autoRec:'tog-arec',
-               metro:'tog-metro', loopQuant:'tog-lq'};
-  if (key==='loopSync')  loopSync=!loopSync;
-  if (key==='countIn')   countIn=!countIn;
-  if (key==='autoRec')   autoRec=!autoRec;
-  if (key==='loopQuant') loopQuant=!loopQuant;
+  const map = { loopSync:'tog-sync', countIn:'tog-cin', autoRec:'tog-arec',
+                metro:'tog-metro', loopQuant:'tog-lq' };
+  if (key==='loopSync')  loopSync  = !loopSync;
+  if (key==='countIn')   countIn   = !countIn;
+  if (key==='autoRec')   autoRec   = !autoRec;
+  if (key==='loopQuant') loopQuant = !loopQuant;
   if (key==='metro') {
-    metroOn=!metroOn;
-    if (metroOn && audioCtx) scheduleMetro();
+    metroOn = !metroOn;
+    if (metroOn && audioCtx) { metroNext = 0; scheduleMetro(); }
   }
-  const val = {loopSync,countIn,autoRec,metro:metroOn,loopQuant}[key];
+  const vals = { loopSync, countIn, autoRec, metro:metroOn, loopQuant };
   const el = document.getElementById(map[key]);
-  if (el) el.classList.toggle('on', val);
+  if (el) el.classList.toggle('on', vals[key]);
 }
 
 // ════════════════════════════════════════════════════════
-// 狀態更新 + 重繪
+// 語言切換
 // ════════════════════════════════════════════════════════
-function setState(t, s) {
-  t.state = s;
-  rerenderTrack(t.id);
+function toggleLang() {
+  lang = lang === 'EN' ? 'ZH' : 'EN';
+  setLang();
+}
+function setLang() {
+  const L = T[lang];
+  document.getElementById('lang-btn').textContent = L.lang_btn;
+  document.getElementById('mc-label').textContent = L.mc_label;
+  document.getElementById('lbl-bpm').textContent  = L.bpm;
+  document.getElementById('lbl-mvol').textContent = L.master_vol;
+  document.getElementById('lbl-mode').textContent = L.mode;
+  document.getElementById('mc-live').textContent  = L.live;
+  document.getElementById('mc-step').textContent  = L.step;
+  document.getElementById('md-multi').textContent = L.multi;
+  document.getElementById('md-single').textContent= L.single;
+  document.getElementById('tog-sync').textContent = L.loop_sync;
+  document.getElementById('tog-cin').textContent  = L.count_in;
+  document.getElementById('tog-arec').textContent = L.auto_rec;
+  document.getElementById('tog-metro').textContent= L.metro;
+  document.getElementById('tog-lq').textContent   = L.quantize;
+  document.getElementById('btn-allstop').textContent  = L.all_stop;
+  document.getElementById('btn-clearall').textContent = L.clear_all;
+  document.getElementById('info').textContent     = L.info_default;
+  renderAll();
 }
 
-// ── 節拍器排程 ─────────────────────────────────────────
-function scheduleMetro() {
-  if (!metroOn || !audioCtx) return;
-  const now = audioCtx.currentTime;
-  const iv  = 60 / bpm;
-  if (metroNext < now) metroNext = now;
-  while (metroNext < now + 0.4) {
-    const osc = audioCtx.createOscillator();
-    const g   = audioCtx.createGain();
-    // 每小節第一拍用高音（1320Hz），其餘用低音（660Hz）
-    const beat = Math.round((metroNext - loopStartTime) / iv) % 4;
-    osc.frequency.value = beat === 0 ? 1320 : 660;
-    g.gain.setValueAtTime(0.25, metroNext);
-    g.gain.exponentialRampToValueAtTime(0.001, metroNext + 0.06);
-    osc.connect(g); g.connect(audioCtx.destination);
-    osc.start(metroNext); osc.stop(metroNext + 0.07);
-    metroNext += iv;
+// ════════════════════════════════════════════════════════
+// Master Clock 可視化
+// ════════════════════════════════════════════════════════
+function updateMasterClock() {
+  const posEl   = document.getElementById('mc-pos');
+  const cntEl   = document.getElementById('mc-count');
+  const bar     = document.getElementById('mc-prog-bar');
+  const handle  = document.getElementById('mc-drag-handle');
+  if (!clockRunning || !masterLoopLen || !audioCtx) {
+    if (posEl) posEl.textContent = T[lang].mc_waiting;
+    if (cntEl) cntEl.textContent = '';
+    if (bar)   bar.style.width = '0%';
+    if (handle)handle.style.left = '0%';
+    return;
   }
-  setTimeout(scheduleMetro, 180);
+  const elapsed = audioCtx.currentTime - loopStartTime;
+  const pos     = elapsed % masterLoopLen;
+  const pct     = (pos / masterLoopLen * 100).toFixed(1);
+  const count   = Math.floor(elapsed / masterLoopLen);
+  if (posEl) posEl.textContent = pos.toFixed(2) + 's / ' + masterLoopLen.toFixed(2) + 's';
+  if (cntEl) cntEl.textContent = '×' + count;
+  if (bar)   bar.style.width  = pct + '%';
+  if (handle)handle.style.left = pct + '%';
 }
 
-function updateGlobalStatus() {
-  const el = document.getElementById('loop-len');
-  if (masterLoopLen) {
-    el.textContent = '● ' + masterLoopLen.toFixed(2) + 's loop';
-    el.style.color = 'var(--green)';
-  } else {
-    el.textContent = '○ no loop';
-    el.style.color = '';
+// Master Clock 進度條拖曳
+function setupClockDrag() {
+  const wrap   = document.getElementById('mc-prog-wrap');
+  const handle = document.getElementById('mc-drag-handle');
+  if (!wrap || !handle) return;
+
+  let dragging = false;
+
+  function seekTo(clientX) {
+    if (!masterLoopLen || !clockRunning) return;
+    const rect = wrap.getBoundingClientRect();
+    const pct  = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+    const newPos = pct * masterLoopLen;
+    // 調整 loopStartTime 使當前位置等於 newPos
+    loopStartTime = audioCtx.currentTime - newPos;
+    // 重新同步所有播放中的軌道
+    tracks.forEach(t => {
+      if (t.state === S.PLAYBACK || t.state === S.OVERDUBBING) {
+        playTrack(t, false);
+      }
+    });
   }
+
+  wrap.addEventListener('mousedown',  e => { dragging = true; seekTo(e.clientX); });
+  wrap.addEventListener('touchstart', e => { dragging = true; seekTo(e.touches[0].clientX); }, {passive:true});
+  document.addEventListener('mousemove',  e => { if (dragging) seekTo(e.clientX); });
+  document.addEventListener('touchmove',  e => { if (dragging) seekTo(e.touches[0].clientX); }, {passive:true});
+  document.addEventListener('mouseup',  () => { dragging = false; });
+  document.addEventListener('touchend', () => { dragging = false; });
 }
 
 // ════════════════════════════════════════════════════════
-// VU Meter HTML
+// 狀態更新工具
+// ════════════════════════════════════════════════════════
+function setState(t, s) { t.state = s; rerenderTrack(t.id); }
+function setInfo(m) { document.getElementById('info').textContent = m; }
+function showErr(m) { const e=document.getElementById('err'); e.textContent=m; e.style.display='block'; }
+
+// ════════════════════════════════════════════════════════
+// VU meter HTML
 // ════════════════════════════════════════════════════════
 function vuHTML(id) {
-  const c = TRACK_COLORS[id];
+  const color = TRACK_COLORS[id];
   let s = '';
   for (let i = 0; i < SEGS; i++) {
     const h   = 22 + Math.round((i/SEGS)*78);
-    const col = i<13?c:i<18?'#FFD60A':'#FF3B30';
+    const col = i<13?color:i<18?'#FFD60A':'#FF3B30';
     s += `<div class="vu-s" id="vu${id}_${i}" style="height:${h}%;background:${col};opacity:.2"></div>`;
   }
   return `<div class="vu">${s}</div>`;
@@ -955,51 +1017,48 @@ function vuHTML(id) {
 // ════════════════════════════════════════════════════════
 function trackHTML(t) {
   const {id,state,volume,prevBuffer,redoBuffer,oneShot,dubMode,loopCount,muted} = t;
-  const tc      = TRACK_COLORS[id];
-  const L       = T[lang];
-  const hasData = !!t.buffer;
-  const canStop = state !== S.EMPTY;
-  const canDub  = state === S.PLAYBACK || state === S.OVERDUBBING;
+  const tc        = TRACK_COLORS[id];
+  const L         = T[lang];
+  const hasData   = !!t.buffer;
+  const canStop   = state !== S.EMPTY && state !== S.STOPPED;
+  const canDub    = state === S.PLAYBACK || state === S.OVERDUBBING;
   const isDubbing = state === S.OVERDUBBING;
-  const canMute = state === S.PLAYBACK;
-  const trackName = L.track + ' ' + (id+1);
+  const canMute   = state === S.PLAYBACK;
+  const trigDisabled = state === S.OVERDUBBING;
   const stateColor = {
     EMPTY:'#303038', RECORDING:'var(--red)', PLAYBACK:'var(--green)',
-    OVERDUBBING:'var(--orange)', STOPPED:'var(--yellow)', STANDBY:'var(--yellow)'
-  }[state];
+    OVERDUBBING:'var(--orange)', STOPPED:'#5A5A6E', STANDBY:'var(--yellow)'
+  }[state] || '#303038';
 
   return `
 <div class="tc" id="tc${id}" data-st="${state}">
   <div class="tc-hd">
     <div class="led led-${state}"></div>
     <div class="tc-meta">
-      <div class="tc-name" style="color:${state===S.EMPTY?tc+'88':tc}">${trackName}</div>
-      <div class="tc-state" style="color:${stateColor}">${L.state[state]}</div>
+      <div class="tc-name" style="color:${state===S.EMPTY?tc+'66':tc}">${L.track} ${id+1}</div>
+      <div class="tc-state" style="color:${stateColor}">${L.state[state]||state}</div>
       <div class="tc-loop-ct" id="lc${id}">${state===S.PLAYBACK&&loopCount?'×'+loopCount:''}</div>
     </div>
     ${vuHTML(id)}
   </div>
   <div class="tc-prog-wrap"><div class="tc-prog-bar" id="pb${id}" style="background:${tc}"></div></div>
-  <span class="tc-time" id="tm${id}">-- / --</span>
+  <span class="tc-time" id="tm${id}">${hasData?'-- / '+t.buffer.duration.toFixed(2)+'s':'-- / --'}</span>
   <div class="tc-vol">
     <input type="range" min="0" max="1" step="0.02" value="${volume}"
       oninput="setTrackVol(${id},this.value)">
     <span class="tc-vol-val" id="vv${id}">${Math.round(volume*100)}%</span>
   </div>
   <div class="tc-btns1">
-    <button class="tbtn tb-trig" data-s="${state}" onclick="onTrigger(${id})" style="flex:2">
-      ${L.trig[state]}
+    <button class="tbtn tb-trig" data-s="${state}" onclick="onTrigger(${id})"
+      style="flex:2" ${trigDisabled?'disabled':''}>
+      ${trigDisabled?'':L.trig[state]||''}
     </button>
     <button class="tbtn tb-stop" onclick="onStop(${id})"
       ${canStop?'':'disabled'}>${L.stop}</button>
     <button class="tbtn tb-dub ${isDubbing?'dubbing':''}" onclick="onDub(${id})"
-      ${canDub?'':'disabled'}>
-      ${isDubbing?L.dub_on:L.dub_off}
-    </button>
+      ${canDub?'':'disabled'}>${isDubbing?L.dub_on:L.dub_off}</button>
     <button class="tbtn tb-mute ${muted?'muting':''}" onclick="onMute(${id})"
-      ${canMute||muted?'':'disabled'}>
-      ${muted?L.muted:L.mute}
-    </button>
+      ${canMute?'':'disabled'}>${muted?L.muted:L.mute}</button>
   </div>
   <div class="tc-btns2">
     <button class="tbtn tb-undo" onclick="onUndo(${id})"
@@ -1007,16 +1066,16 @@ function trackHTML(t) {
     <button class="tbtn tb-redo" onclick="onRedo(${id})"
       ${redoBuffer?'':'disabled'}>${L.redo}</button>
     <button class="tbtn tb-clear" onclick="onClear(${id})"
-      ${hasData||canStop?'':'disabled'}
-      style="opacity:${hasData||canStop?1:.3}">${L.clear}</button>
+      ${hasData||state!==S.EMPTY?'':'disabled'}
+      style="opacity:${hasData||state!==S.EMPTY?1:.3}">${L.clear}</button>
   </div>
   <div class="tc-opts">
-    <button class="opt-btn ${oneShot?'on':''}" onclick="toggleOneShot(${id})">
-      ${L.one_shot}
-    </button>
+    <button class="opt-btn ${oneShot?'on':''}" onclick="toggleOneShot(${id})">${L.one_shot}</button>
     <div class="dub-mode-grp">
-      <button class="dm-btn ${dubMode==='DUB'?'active':''}" onclick="setDubMode(${id},'DUB')">${L.dub}</button>
-      <button class="dm-btn ${dubMode==='REPLACE'?'active':''}" onclick="setDubMode(${id},'REPLACE')">${L.replace}</button>
+      <button class="dm-btn ${dubMode==='DUB'?'active':''}"
+        onclick="setDubMode(${id},'DUB')">${L.dub}</button>
+      <button class="dm-btn ${dubMode==='REPLACE'?'active':''}"
+        onclick="setDubMode(${id},'REPLACE')">${L.replace}</button>
     </div>
   </div>
 </div>`;
@@ -1026,9 +1085,8 @@ function trackHTML(t) {
 // 渲染
 // ════════════════════════════════════════════════════════
 function renderAll() {
-  document.getElementById('tracks').innerHTML = tracks.map(t=>trackHTML(t)).join('');
+  document.getElementById('tracks').innerHTML = tracks.map(t => trackHTML(t)).join('');
 }
-
 function rerenderTrack(id) {
   const el = document.getElementById('tc'+id);
   if (!el) return;
@@ -1049,50 +1107,45 @@ function getRMS(an) {
 }
 
 // ════════════════════════════════════════════════════════
-// 主動畫迴圈：VU + 循環計數
+// 主動畫迴圈
 // ════════════════════════════════════════════════════════
 (function animLoop() {
+  // Master Clock
+  updateMasterClock();
+
+  // 每軌 VU + 進度條 + timecode + loop count
   for (let i = 0; i < TRACK_COUNT; i++) {
     const t = tracks[i];
+
+    // VU meter
     let raw = 0;
     if ((t.state===S.RECORDING||t.state===S.OVERDUBBING) && micAnalyser)
       raw = getRMS(micAnalyser);
-    else if ((t.state===S.PLAYBACK||t.state===S.STANDBY) && t.analyserNode)
+    else if (t.state===S.PLAYBACK && t.analyserNode)
       raw = getRMS(t.analyserNode);
-
     smoothLv[i] = raw>smoothLv[i] ? raw*.8+smoothLv[i]*.2 : smoothLv[i]*.83;
     const lv = Math.min(1, smoothLv[i]*5);
-
     for (let s = 0; s < SEGS; s++) {
       const seg = document.getElementById(`vu${i}_${s}`);
-      if (seg) seg.style.opacity = lv>=(s+1)/SEGS?'1':'.1';
+      if (seg) seg.style.opacity = lv>=(s+1)/SEGS ? '1' : '.2';
     }
 
-    // 更新進度條 + Timecode + Loop 計數
-    if (t.buffer && masterLoopLen && loopStartTime && audioCtx) {
-      const now     = audioCtx.currentTime;
-      const elapsed = (now - loopStartTime) % masterLoopLen;
-      const pos     = elapsed % t.buffer.duration;
-      const dur     = t.buffer.duration;
-      const pct     = pos / dur * 100;
-
-      const pb = document.getElementById('pb'+i);
+    // 進度條 + timecode（對齊 Master Clock）
+    if (t.buffer && clockRunning && masterLoopLen && audioCtx) {
+      const pos  = (audioCtx.currentTime - loopStartTime) % masterLoopLen % t.buffer.duration;
+      const pct  = pos / t.buffer.duration * 100;
+      const pb   = document.getElementById('pb'+i);
+      const tm   = document.getElementById('tm'+i);
       if (pb) pb.style.width = pct + '%';
-
-      // 只在播放/疊錄中顯示 timecode
-      if (t.state===S.PLAYBACK||t.state===S.OVERDUBBING) {
-        const tm = document.getElementById('tm'+i);
-        if (tm) tm.textContent = pos.toFixed(2) + 's / ' + dur.toFixed(2) + 's';
-        // loop 計數
-        const n = Math.floor((now-loopStartTime)/masterLoopLen);
-        if (n !== t.loopCount) {
-          t.loopCount = n;
-          const lcel = document.getElementById('lc'+i);
-          if (lcel) lcel.textContent = '×'+n;
-        }
-      } else {
-        const tm = document.getElementById('tm'+i);
-        if (tm) tm.textContent = '-- / ' + dur.toFixed(2) + 's';
+      if (tm && t.state===S.PLAYBACK) {
+        tm.textContent = pos.toFixed(2) + 's / ' + t.buffer.duration.toFixed(2) + 's';
+      }
+      // loop count
+      const n = Math.floor((audioCtx.currentTime - loopStartTime) / masterLoopLen);
+      if (n !== t.loopCount) {
+        t.loopCount = n;
+        const lcel = document.getElementById('lc'+i);
+        if (lcel) lcel.textContent = '×'+n;
       }
     }
   }
@@ -1100,15 +1153,11 @@ function getRMS(an) {
 })();
 
 // ════════════════════════════════════════════════════════
-// 工具
-// ════════════════════════════════════════════════════════
-function setInfo(m) { document.getElementById('info').textContent = m; }
-function showErr(m) { const e=document.getElementById('err'); e.textContent=m; e.style.display='block'; }
-
 // 啟動
+// ════════════════════════════════════════════════════════
 renderAll();
-// 預設開啟 Loop Sync
-document.getElementById('tog-sync').classList.add('on');
+setupClockDrag();
+updateMasterClock();
 </script>
 </body>
 </html>
