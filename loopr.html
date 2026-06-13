@@ -362,6 +362,14 @@ async function initAudio() {
     micAnalyser = audioCtx.createAnalyser();
     micAnalyser.fftSize = 256;
     audioCtx.createMediaStreamSource(micStream).connect(micAnalyser);
+
+    // iOS fix：強制音訊輸出走主喇叭而非聽筒
+    const iosFix = document.createElement('audio');
+    iosFix.muted = true;
+    iosFix.playsInline = true;
+    iosFix.srcObject = micStream;
+    iosFix.play().catch(() => {});
+
     return true;
   } catch(e) {
     showErr('⚠ 無法存取麥克風：' + e.message);
