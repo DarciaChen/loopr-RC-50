@@ -1209,7 +1209,7 @@ function getRMS(an) {
     else if (t.state===S.PLAYBACK && t.analyserNode)
       raw = getRMS(t.analyserNode);
     smoothLv[i] = raw>smoothLv[i] ? raw*.8+smoothLv[i]*.2 : smoothLv[i]*.83;
-    const lv = Math.min(1, smoothLv[i]*8);
+    const lv = Math.min(1, smoothLv[i]*2.5);
     for (let s = 0; s < SEGS; s++) {
       const seg = document.getElementById(`vu${i}_${s}`);
       if (seg) seg.style.opacity = lv>=(s+1)/SEGS ? '1' : '.2';
