@@ -418,7 +418,7 @@ async function initAudio() {
     masterGain.gain.value = 1.5;
     masterGain.connect(audioCtx.destination);
     micStream = await navigator.mediaDevices.getUserMedia({
-      audio:{ echoCancellation:false, noiseSuppression:false, autoGainControl:true }
+      audio:{ echoCancellation:true, noiseSuppression:true, autoGainControl:true }
     });
 
     // iOS fix：強制音訊輸出走主喇叭而非聽筒
