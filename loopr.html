@@ -418,7 +418,7 @@ async function initAudio() {
     masterGain.gain.value = 1.5;
     masterGain.connect(audioCtx.destination);
     micStream = await navigator.mediaDevices.getUserMedia({
-      audio:{ echoCancellation:false, noiseSuppression:false, autoGainControl:false }
+      audio:{ echoCancellation:false, noiseSuppression:false, autoGainControl:true }
     });
 
     // iOS fix：強制音訊輸出走主喇叭而非聽筒
@@ -1209,7 +1209,7 @@ function getRMS(an) {
     else if (t.state===S.PLAYBACK && t.analyserNode)
       raw = getRMS(t.analyserNode);
     smoothLv[i] = raw>smoothLv[i] ? raw*.8+smoothLv[i]*.2 : smoothLv[i]*.83;
-    const lv = Math.min(1, smoothLv[i]*5);
+    const lv = Math.min(1, smoothLv[i]*8);
     for (let s = 0; s < SEGS; s++) {
       const seg = document.getElementById(`vu${i}_${s}`);
       if (seg) seg.style.opacity = lv>=(s+1)/SEGS ? '1' : '.2';
