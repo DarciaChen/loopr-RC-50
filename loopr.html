@@ -45,6 +45,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
 #mc-pos{font-size:12px;color:var(--accent);font-weight:700;letter-spacing:1px}
 #mc-count{font-size:11px;color:var(--muted);letter-spacing:1px}
 #mc-mode{display:flex;gap:4px}
+#mc-mode-desc{font-size:10px;color:var(--muted);letter-spacing:.5px;line-height:1.6;margin-bottom:8px;padding:0 2px}
 .mc-mode-btn{height:24px;padding:0 10px;border-radius:6px;font-size:10px;font-weight:700;
   letter-spacing:1px;background:var(--dim);border:1px solid var(--border);color:var(--muted);transition:all .15s}
 .mc-mode-btn.active{background:#FFD60A1A;border-color:#FFD60A55;color:var(--accent)}
@@ -251,6 +252,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
       </div>
     </div>
   </div>
+  <div id="mc-mode-desc"></div>
   <div id="mc-prog-wrap">
     <div id="mc-prog-bar"></div>
     <div id="mc-drag-handle"></div>
@@ -318,6 +320,8 @@ const T = {
     multi:'MULTI', single:'SINGLE', master_vol:'MASTER VOL', mode:'MODE', bpm:'BPM',
     mc_label:'MASTER CLOCK', mc_waiting:'waiting for first track',
     live:'LIVE', step:'STEP', track:'TRACK', lang_btn:'中文',
+    live_desc:'LIVE: auto-aligns to loop boundaries. E.g. Track 1 is 60s — start/stop recording anytime, it waits for the loop to complete (0s→60s) before committing.',
+    step_desc:'STEP: records exactly when you press. E.g. press at 0:25 for 10s — that 10s clip starts at the 25s mark, no waiting.',
     info_default:'tap TRIGGER to record',
   },
   ZH: {
@@ -333,6 +337,8 @@ const T = {
     multi:'多軌', single:'單軌', master_vol:'主音量', mode:'模式', bpm:'BPM',
     mc_label:'主時鐘', mc_waiting:'等待第一軌',
     live:'LIVE', step:'STEP', track:'軌道', lang_btn:'Eng',
+    live_desc:'LIVE：自動對齊循環邊界。例如第一軌 60 秒，任何時候按下錄音／停止，系統都會等到整圈跑完（0秒→60秒）才真正開始或結束。',
+    step_desc:'STEP：按下去就是按下去那一刻。例如在第 25 秒按下錄 10 秒，這段內容就對應主時鐘的 25～35 秒，不會等待。',
     info_default:'點擊 錄音 開始',
   }
 };
@@ -974,6 +980,12 @@ function setLoopMode(m) {
   loopMode = m;
   document.getElementById('mc-live').classList.toggle('active', m==='LIVE');
   document.getElementById('mc-step').classList.toggle('active', m==='STEP');
+  updateModeDesc();
+}
+function updateModeDesc() {
+  const el = document.getElementById('mc-mode-desc');
+  if (!el) return;
+  el.textContent = loopMode === 'LIVE' ? T[lang].live_desc : T[lang].step_desc;
 }
 function toggle(key) {
   const map = { loopSync:'tog-sync', countIn:'tog-cin', autoRec:'tog-arec',
@@ -1017,6 +1029,7 @@ function setLang() {
   document.getElementById('btn-allstop').textContent  = L.all_stop;
   document.getElementById('btn-clearall').textContent = L.clear_all;
   document.getElementById('info').textContent     = L.info_default;
+  updateModeDesc();
   renderAll();
 }
 
@@ -1208,7 +1221,7 @@ function getRMS(an) {
       raw = getRMS(micAnalyser);
     else if (t.state===S.PLAYBACK && t.analyserNode)
       raw = getRMS(t.analyserNode);
-    smoothLv[i] = raw>smoothLv[i] ? raw*.8+smoothLv[i]*.2 : smoothLv[i]*.83;
+    smoothLv[i] = raw>smoothLv[i] ? raw*.4+smoothLv[i]*.6 : raw*.15+smoothLv[i]*.85;
     const lv = Math.min(1, smoothLv[i]*2.5);
     for (let s = 0; s < SEGS; s++) {
       const seg = document.getElementById(`vu${i}_${s}`);
@@ -1426,6 +1439,7 @@ function closeHelp() {
 renderAll();
 setupClockDrag();
 updateMasterClock();
+updateModeDesc();
 </script>
 <!-- Help Modal -->
 <div id="help-modal">
