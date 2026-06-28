@@ -169,6 +169,62 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
 .dm-btn{height:24px;padding:0 8px;border-radius:6px;font-size:9px;font-weight:700;
   letter-spacing:1px;background:var(--dim);border:1px solid var(--border);color:var(--muted);transition:all .15s}
 .dm-btn.active{background:#2A2A38;border-color:#44445A;color:#C8C8D8}
+/* ── Help Modal ── */
+#help-modal{
+  display:none; position:fixed; inset:0; background:#000000CC;
+  z-index:200; padding:0;
+}
+#help-modal.show{display:flex}
+#help-panel{
+  background:#FAFAF7; color:#1A1A1A; width:100%; height:100%;
+  display:flex; flex-direction:column; font-family:-apple-system,system-ui,sans-serif;
+}
+#help-header{
+  padding:16px 18px; border-bottom:1px solid #E5E5E0;
+  display:flex; justify-content:space-between; align-items:center;
+  background:#fff; flex-shrink:0;
+}
+#help-title{font-size:16px; font-weight:700; letter-spacing:1px; color:#1A1A1A}
+#help-close{
+  width:30px; height:30px; border-radius:50%; background:#F0F0EC;
+  color:#666; font-size:14px; border:none;
+}
+#help-body{
+  flex:1; overflow-y:auto; padding:18px 20px 40px;
+  font-size:14px; line-height:1.75; color:#2A2A2A;
+}
+#help-body h2{
+  font-size:16px; margin:22px 0 10px; padding-bottom:6px;
+  border-bottom:2px solid #1A1A1A; color:#1A1A1A;
+}
+#help-body h2:first-child{margin-top:0}
+#help-body h3{font-size:14px; margin:16px 0 6px; color:#333}
+#help-body p{margin:6px 0}
+#help-body ul,#help-body ol{margin:6px 0; padding-left:20px}
+#help-body li{margin:4px 0}
+#help-body table{width:100%; border-collapse:collapse; margin:10px 0; font-size:13px}
+#help-body th,#help-body td{border:1px solid #DDD; padding:7px 9px; text-align:left}
+#help-body th{background:#2A2A2A; color:#fff}
+#help-body tr:nth-child(even){background:#F4F4F0}
+#help-body .h-box{
+  background:#F4F1E6; border-left:3px solid #C9960C;
+  padding:9px 13px; margin:10px 0; border-radius:0 6px 6px 0; font-size:13px;
+}
+#help-body .h-warn{
+  background:#FBEFEE; border-left:3px solid #D9534F;
+  padding:9px 13px; margin:10px 0; border-radius:0 6px 6px 0; font-size:13px;
+}
+#help-body .h-tip{
+  background:#EDF6EE; border-left:3px solid #4A9D5C;
+  padding:9px 13px; margin:10px 0; border-radius:0 6px 6px 0; font-size:13px;
+}
+#help-body .h-tag{
+  display:inline-block; font-family:monospace; font-size:12px;
+  background:#2A2A2A; color:#fff; padding:2px 7px; border-radius:4px;
+}
+#help-body .h-flow{display:flex; align-items:center; gap:6px; margin:12px 0; flex-wrap:wrap; font-size:12px}
+#help-body .h-step{background:#F0F0EC; border:1px solid #DDD; padding:6px 10px; border-radius:6px; text-align:center}
+#help-body .h-arrow{color:#999}
 </style>
 </head>
 <body>
@@ -176,7 +232,10 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
 <!-- Header -->
 <div id="hdr">
   <div class="logo">LOOP<em>R</em><small>RC-50 LOOP STATION</small></div>
-  <button class="lang-btn" id="lang-btn" onclick="toggleLang()">中文</button>
+  <div style="display:flex;gap:8px">
+    <button class="lang-btn" id="help-btn" onclick="openHelp()">?</button>
+    <button class="lang-btn" id="lang-btn" onclick="toggleLang()">中文</button>
+  </div>
 </div>
 
 <!-- Master Clock -->
@@ -309,6 +368,8 @@ let audioCtx   = null;
 let masterGain = null;
 let micStream  = null;
 let micAnalyser= null;
+let micInputGain    = null;  // 麥克風前級增益節點
+let micRecordStream = null;  // 增益後、實際用於 MediaRecorder 的 stream
 
 // Master Clock — 從第一軌錄完開始永遠跑
 let masterLoopLen  = null;  // 第一軌決定的循環長度（秒）
@@ -359,9 +420,6 @@ async function initAudio() {
     micStream = await navigator.mediaDevices.getUserMedia({
       audio:{ echoCancellation:false, noiseSuppression:false, autoGainControl:false }
     });
-    micAnalyser = audioCtx.createAnalyser();
-    micAnalyser.fftSize = 256;
-    audioCtx.createMediaStreamSource(micStream).connect(micAnalyser);
 
     // iOS fix：強制音訊輸出走主喇叭而非聽筒
     const iosFix = document.createElement('audio');
@@ -369,6 +427,25 @@ async function initAudio() {
     iosFix.playsInline = true;
     iosFix.srcObject = micStream;
     iosFix.play().catch(() => {});
+
+    // iOS 錄音增益修正：
+    // iOS 的 getUserMedia 原始輸入音量明顯偏低，MediaRecorder 直接吃
+    // micStream 會錄到過小聲的內容。這裡用 GainNode 把訊號放大後，
+    // 透過 MediaStreamDestinationNode 重新合成一個「已增益」的 stream，
+    // 實際錄音與 VU meter 都改用這個增益後的 stream。
+    micInputGain = audioCtx.createGain();
+    micInputGain.gain.value = 2.2;  // 麥克風前級增益，可依測試結果微調
+
+    const micSrcNode = audioCtx.createMediaStreamSource(micStream);
+    micSrcNode.connect(micInputGain);
+
+    micAnalyser = audioCtx.createAnalyser();
+    micAnalyser.fftSize = 256;
+    micInputGain.connect(micAnalyser);
+
+    const micDest = audioCtx.createMediaStreamDestination();
+    micInputGain.connect(micDest);
+    micRecordStream = micDest.stream;  // 錄音改用這個增益後的 stream
 
     return true;
   } catch(e) {
@@ -542,7 +619,7 @@ function getMime() {
 function doStartRecording(t) {
   t.recChunks = [];
   const mime  = getMime();
-  const rec   = new MediaRecorder(micStream, mime ? {mimeType:mime} : {});
+  const rec   = new MediaRecorder(micRecordStream, mime ? {mimeType:mime} : {});
   rec.ondataavailable = e => { if (e.data.size > 0) t.recChunks.push(e.data); };
   rec.start(50);
   t.mediaRecorder = rec;
@@ -1161,11 +1238,205 @@ function getRMS(an) {
 })();
 
 // ════════════════════════════════════════════════════════
+// 說明書內容（中英雙語）
+// ════════════════════════════════════════════════════════
+const HELP_HTML = {
+EN: `
+<h2>What is this</h2>
+<p>LOOPR is a multi-track loop recorder you can use right in your browser, inspired by the BOSS RC-50 Loop Station. Record a sound, let it loop, then layer more tracks on top.</p>
+
+<h2>Before you start</h2>
+<p>This needs microphone access. Tap any record button and allow the permission prompt.</p>
+<div class="h-warn">Use Safari (iPhone/iPad) or Chrome (Android) directly — not an in-app browser, or microphone access may fail.</div>
+
+<h2>Master Clock</h2>
+<p>Once your first track finishes recording, its length becomes the <strong>Master Clock</strong> — a loop that runs forever in the background, even when tracks are stopped or muted. Every other track aligns to it.</p>
+<div class="h-tip">Drag the progress bar to jump to any point in the loop — all tracks jump together.</div>
+
+<h2>Track states</h2>
+<table>
+<tr><th>State</th><th>Meaning</th></tr>
+<tr><td>EMPTY</td><td>No recording yet</td></tr>
+<tr><td>REC ●</td><td>Recording from microphone</td></tr>
+<tr><td>PLAY</td><td>Looping playback</td></tr>
+<tr><td>DUB ●</td><td>Overdubbing on top of existing content</td></tr>
+<tr><td>STOPPED</td><td>Content kept, just not playing</td></tr>
+</table>
+
+<h3>TRIGGER button</h3>
+<div class="h-flow">
+  <div class="h-step">EMPTY<br><span class="h-tag">● REC</span></div>
+  <div class="h-arrow">→</div>
+  <div class="h-step">RECORDING<br><span class="h-tag">■ STOP</span></div>
+  <div class="h-arrow">→</div>
+  <div class="h-step">PLAYBACK<br><span class="h-tag">■ STOP</span></div>
+  <div class="h-arrow">→</div>
+  <div class="h-step">STOPPED<br><span class="h-tag">▶ PLAY</span></div>
+</div>
+
+<h3>STOP button</h3>
+<p>Always means "abandon / end": cancels recording, stops playback, or discards an overdub in progress.</p>
+
+<h3>DUB button</h3>
+<p>Only works while playing. Records a new layer that mixes with the existing content.</p>
+
+<h3>MUTE</h3>
+<p>Silences a track while keeping it synced to the Master Clock. Only the MUTE button itself can toggle this — ALL STOP and other actions never override it.</p>
+
+<h3>UNDO / REDO / CLEAR</h3>
+<p>UNDO reverts the last overdub. REDO brings it back. CLEAR wipes that single track only.</p>
+
+<h2>LIVE vs STEP mode</h2>
+<table>
+<tr><th>Mode</th><th>Behavior</th></tr>
+<tr><td>LIVE</td><td>Recording waits for the next loop boundary to start/stop, then auto-plays. Great for performing in time.</td></tr>
+<tr><td>STEP</td><td>Records/stops instantly, no waiting. Stays stopped after recording — you press play yourself.</td></tr>
+</table>
+<div class="h-tip">New to LOOPR? Start with STEP mode to learn the buttons at your own pace.</div>
+
+<h2>Global controls</h2>
+<table>
+<tr><th>Control</th><th>What it does</th></tr>
+<tr><td>BPM</td><td>Tempo reference for metronome and quantize</td></tr>
+<tr><td>Master Vol</td><td>Overall output volume</td></tr>
+<tr><td>Multi/Single</td><td>Single mode auto-stops other tracks when one starts</td></tr>
+<tr><td>Loop Sync</td><td>New tracks auto-align to Master Clock length</td></tr>
+<tr><td>Count-In</td><td>4-beat countdown before recording starts</td></tr>
+<tr><td>Auto Rec</td><td>Waits for sound before starting to record</td></tr>
+<tr><td>Metro</td><td>Click track at the set BPM</td></tr>
+<tr><td>Quantize</td><td>Rounds first track's length to the nearest beat</td></tr>
+<tr><td>All Stop</td><td>Stops all tracks, keeps content and mute states</td></tr>
+<tr><td>Clear All</td><td>Wipes everything and resets the Master Clock</td></tr>
+</table>
+
+<h2>Quick start: a 3-track song</h2>
+<ol>
+<li>Set mode to STEP</li>
+<li>Record an 8-second beat on Track 1, press STOP — Master Clock is now set to 8s</li>
+<li>Press PLAY on Track 1</li>
+<li>Record a melody on Track 2 along with the beat, press STOP, then PLAY</li>
+<li>Repeat for Track 3 with harmony</li>
+<li>Adjust volumes or MUTE tracks to taste</li>
+</ol>
+
+<h2>FAQ</h2>
+<p><strong>No microphone prompt?</strong> Make sure you're using Safari or Chrome directly, not an in-app browser.</p>
+<p><strong>Quiet playback on iPhone?</strong> Turn off silent mode and raise both the phone volume and the Master Vol slider.</p>
+<p><strong>Tracks out of sync?</strong> Keep Loop Sync on, or switch to LIVE mode for automatic alignment.</p>
+<p><strong>DUB button greyed out?</strong> DUB only works while a track is playing.</p>
+`,
+ZH: `
+<h2>這是什麼工具</h2>
+<p>LOOPR 是可以直接在瀏覽器使用的多軌循環錄音效果器，操作概念來自 BOSS RC-50 Loop Station。錄一段聲音、讓它循環播放，再疊加更多軌道。</p>
+
+<h2>開始之前</h2>
+<p>需要麥克風權限。點任何錄音按鈕，允許跳出的權限請求即可。</p>
+<div class="h-warn">請用 Safari（iPhone/iPad）或 Chrome（Android）直接開啟，不要透過 App 內嵌瀏覽器，否則麥克風權限可能失敗。</div>
+
+<h2>Master Clock（主時鐘）</h2>
+<p>第一軌錄完後，它的長度會成為 <strong>Master Clock</strong>——一個在背景永遠運轉的循環，即使軌道停止或靜音也不會停。之後所有軌道都會對齊它。</p>
+<div class="h-tip">拖曳進度條可跳到循環中任意位置，所有軌道會一起跳轉。</div>
+
+<h2>軌道狀態</h2>
+<table>
+<tr><th>狀態</th><th>意思</th></tr>
+<tr><td>EMPTY</td><td>還沒有錄音內容</td></tr>
+<tr><td>REC ●</td><td>正在用麥克風錄音</td></tr>
+<tr><td>PLAY</td><td>正在循環播放</td></tr>
+<tr><td>DUB ●</td><td>正在疊加新內容</td></tr>
+<tr><td>STOPPED</td><td>內容保留，暫不播放</td></tr>
+</table>
+
+<h3>TRIGGER 按鈕</h3>
+<div class="h-flow">
+  <div class="h-step">空軌<br><span class="h-tag">● 錄音</span></div>
+  <div class="h-arrow">→</div>
+  <div class="h-step">錄音中<br><span class="h-tag">■ 停止</span></div>
+  <div class="h-arrow">→</div>
+  <div class="h-step">播放中<br><span class="h-tag">■ 停止</span></div>
+  <div class="h-arrow">→</div>
+  <div class="h-step">已停止<br><span class="h-tag">▶ 播放</span></div>
+</div>
+
+<h3>STOP 按鈕</h3>
+<p>永遠代表「放棄／結束」：取消錄音、停止播放、或放棄正在進行的疊錄。</p>
+
+<h3>DUB 按鈕</h3>
+<p>只在播放中可用，會錄一段新內容並與原本的混合。</p>
+
+<h3>MUTE（靜音）</h3>
+<p>讓軌道靜音但仍對齊 Master Clock。只有 MUTE 按鈕本身能切換，ALL STOP 和其他操作都不會影響它。</p>
+
+<h3>UNDO / REDO / CLEAR</h3>
+<p>UNDO 復原上一次疊錄，REDO 恢復剛取消的。CLEAR 只清空這一軌。</p>
+
+<h2>LIVE 與 STEP 模式</h2>
+<table>
+<tr><th>模式</th><th>行為</th></tr>
+<tr><td>LIVE</td><td>錄音會等到循環邊界才開始／結束，錄完自動播放，適合即時演奏</td></tr>
+<tr><td>STEP</td><td>立即錄立即停，不等待，錄完停在已停止，自己按播放</td></tr>
+</table>
+<div class="h-tip">剛開始使用建議先選 STEP 模式，慢慢熟悉每個按鈕。</div>
+
+<h2>全域控制</h2>
+<table>
+<tr><th>功能</th><th>作用</th></tr>
+<tr><td>BPM</td><td>節拍器與量化對齊的速度基準</td></tr>
+<tr><td>主音量</td><td>整體輸出音量</td></tr>
+<tr><td>多軌/單軌</td><td>單軌模式下開始新軌會自動停止其他軌</td></tr>
+<tr><td>循環同步</td><td>新軌自動對齊 Master Clock 長度</td></tr>
+<tr><td>數拍進入</td><td>錄音前 4 拍倒數提示</td></tr>
+<tr><td>自動錄音</td><td>偵測到聲音才開始錄</td></tr>
+<tr><td>節拍器</td><td>依 BPM 播放節拍提示音</td></tr>
+<tr><td>拍點對齊</td><td>第一軌長度自動對齊最近的整拍</td></tr>
+<tr><td>全部停止</td><td>停止所有軌道，內容與靜音狀態保留</td></tr>
+<tr><td>全部清除</td><td>清空所有內容並重置 Master Clock</td></tr>
+</table>
+
+<h2>快速上手：錄一首三軌歌曲</h2>
+<ol>
+<li>切換到 STEP 模式</li>
+<li>軌道 1 錄 8 秒節奏，按停止——Master Clock 設定為 8 秒</li>
+<li>按軌道 1 的播放</li>
+<li>軌道 2 跟著節奏錄旋律，按停止再按播放</li>
+<li>軌道 3 重複加入和聲</li>
+<li>依喜好調整音量或靜音某軌</li>
+</ol>
+
+<h2>常見問題</h2>
+<p><strong>沒有跳出麥克風請求？</strong>確認用 Safari 或 Chrome 直接開啟，不是 App 內嵌瀏覽器。</p>
+<p><strong>iPhone 播放太小聲？</strong>關閉靜音模式，同時調高手機音量與主音量滑桿。</p>
+<p><strong>軌道對不齊？</strong>保持循環同步開啟，或切換 LIVE 模式自動對齊。</p>
+<p><strong>DUB 按鈕是灰的？</strong>DUB 只在軌道播放中才能使用。</p>
+`
+};
+
+function openHelp() {
+  document.getElementById('help-body').innerHTML = HELP_HTML[lang];
+  document.getElementById('help-title').textContent = lang==='EN' ? 'LOOPR Help' : 'LOOPR 使用說明';
+  document.getElementById('help-modal').classList.add('show');
+}
+function closeHelp() {
+  document.getElementById('help-modal').classList.remove('show');
+}
+
+// ════════════════════════════════════════════════════════
 // 啟動
 // ════════════════════════════════════════════════════════
 renderAll();
 setupClockDrag();
 updateMasterClock();
 </script>
+<!-- Help Modal -->
+<div id="help-modal">
+  <div id="help-panel">
+    <div id="help-header">
+      <span id="help-title">LOOPR 使用說明</span>
+      <button id="help-close" onclick="closeHelp()">✕</button>
+    </div>
+    <div id="help-body"></div>
+  </div>
+</div>
+
 </body>
 </html>
