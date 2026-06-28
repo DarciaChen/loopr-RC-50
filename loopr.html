@@ -135,7 +135,9 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
 .tc-btns1{padding:0 12px 6px;display:flex;gap:5px}
 .tc-btns2{padding:0 12px 8px;display:flex;gap:5px}
 .tbtn{height:34px;border-radius:9px;font-size:10px;font-weight:700;letter-spacing:1px;
-  border:1px solid;transition:all .15s;white-space:nowrap;flex:1}
+  border:1px solid;transition:all .15s;white-space:nowrap;flex:1;
+  display:flex;align-items:center;justify-content:center;
+  touch-action:manipulation;-webkit-user-select:none;user-select:none}
 .tbtn:disabled{opacity:.25;cursor:default}
 
 /* TRIGGER */
@@ -308,10 +310,12 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
 let lang = 'EN';
 const T = {
   EN: {
-    trig: { EMPTY:'● REC', RECORDING:'■ STOP', PLAYBACK:'■ STOP', STOPPED:'▶ PLAY', OVERDUBBING:'' },
-    state: { EMPTY:'EMPTY', RECORDING:'REC ●', PLAYBACK:'PLAY', OVERDUBBING:'DUB ●', STOPPED:'STOPPED' },
+    trig: { EMPTY:'● REC', RECORDING:'■ STOP', PLAYBACK:'■ STOP', STOPPED:'▶ PLAY', OVERDUBBING:'', STANDBY:'… WAITING' },
+    state: { EMPTY:'EMPTY', RECORDING:'REC ●', PLAYBACK:'PLAY', OVERDUBBING:'DUB ●', STOPPED:'STOPPED', STANDBY:'STANDBY' },
     dub_on:'■ DUB', dub_off:'● DUB',
     stop:'◼ STOP', undo:'↺ UNDO', redo:'↻ REDO', clear:'✕ CLEAR',
+    clear_confirm_recording:'Track {n} is recording — clearing now will cancel and discard it. Continue?',
+    clear_confirm:'Clear Track {n}? This cannot be undone.',
     mute:'MUTE', muted:'MUTED',
     one_shot:'ONE SHOT', dub:'DUB', replace:'REPLACE',
     all_stop:'◼ ALL STOP', clear_all:'CLEAR ALL',
@@ -325,10 +329,12 @@ const T = {
     info_default:'tap TRIGGER to record',
   },
   ZH: {
-    trig: { EMPTY:'● 錄音', RECORDING:'■ 停止', PLAYBACK:'■ 停止', STOPPED:'▶ 播放', OVERDUBBING:'' },
-    state: { EMPTY:'空軌', RECORDING:'錄音中 ●', PLAYBACK:'播放中', OVERDUBBING:'疊錄中 ●', STOPPED:'已停止' },
+    trig: { EMPTY:'● 錄音', RECORDING:'■ 停止', PLAYBACK:'■ 停止', STOPPED:'▶ 播放', OVERDUBBING:'', STANDBY:'… 等待中' },
+    state: { EMPTY:'空軌', RECORDING:'錄音中 ●', PLAYBACK:'播放中', OVERDUBBING:'疊錄中 ●', STOPPED:'已停止', STANDBY:'待機中' },
     dub_on:'■ 疊錄', dub_off:'● 疊錄',
     stop:'◼ 停止', undo:'↺ 復原', redo:'↻ 重做', clear:'✕ 清除',
+    clear_confirm_recording:'Track {n} 正在錄音中，清除將會中斷並捨棄這段錄音，確定要繼續嗎？',
+    clear_confirm:'確定要清除 Track {n} 嗎？此動作無法復原。',
     mute:'靜音', muted:'靜音中',
     one_shot:'單次播放', dub:'疊錄', replace:'覆蓋',
     all_stop:'◼ 全部停止', clear_all:'全部清除',
@@ -480,6 +486,20 @@ function timeToNextBoundary() {
 // ════════════════════════════════════════════════════════
 // 音訊緩衝區工具
 // ════════════════════════════════════════════════════════
+
+// 將新錄音依照 offsetSec 補靜音對齊到正確時間點（不裁切總長度，用於 Loop Sync 關閉時）
+async function padBufferAtOffset(buf, offsetSec, totalDurationSec) {
+  const sr        = audioCtx.sampleRate;
+  const offsetLen = Math.round(offsetSec * sr);
+  const totalLen  = Math.round(totalDurationSec * sr);
+  const ch        = buf.numberOfChannels;
+  const out       = audioCtx.createBuffer(ch, Math.max(totalLen, offsetLen + buf.length), sr);
+  for (let c = 0; c < ch; c++) {
+    const src = buf.getChannelData(c);
+    out.getChannelData(c).set(src, offsetLen);
+  }
+  return out;
+}
 
 // Overdub 混音
 async function mixBuffers(existing, newBuf) {
@@ -646,18 +666,18 @@ async function startRecording(t, isOverdub) {
     }
   };
 
-  if (loopMode === 'LIVE' && clockRunning && !isOverdub) {
-    // LIVE 模式：等到下一個 loop 邊界才開始錄
+  if (loopMode === 'LIVE' && clockRunning) {
+    // LIVE 模式：等到下一個 loop 邊界才開始錄（含疊錄，確保節奏對齊）
     t.recScheduled = true;
-    setState(t, S.STANDBY);
+    if (!isOverdub) setState(t, S.STANDBY); // 疊錄等待時維持播放中，不打斷原有循環
     setInfo('LIVE: waiting for loop boundary…');
     const waitMs = timeToNextBoundary() * 1000;
     setTimeout(() => {
       if (t.recScheduled) {
         t.recScheduled = false;
         doStartRecording(t);
-        setState(t, S.RECORDING);
-        setInfo('Track ' + (t.id+1) + ' recording…');
+        setState(t, isOverdub ? S.OVERDUBBING : S.RECORDING);
+        setInfo('Track ' + (t.id+1) + (isOverdub ? ' overdubbing…' : ' recording…'));
       }
     }, Math.max(0, waitMs - 20));
   } else if (countIn && !isOverdub) {
@@ -703,10 +723,18 @@ function stopRecording(t, isOverdub) {
           if (isOverdub && t.buffer) {
             t.redoBuffer = null;
             t.prevBuffer = t.buffer;
-            if (loopSync && masterLoopLen) newBuf = fitToMasterLen(newBuf, 0);
-            t.buffer = t.dubMode === 'REPLACE'
-              ? newBuf
-              : await mixBuffers(t.buffer, newBuf);
+            // 用「按下疊錄那一刻」記錄的偏移量對齊，而非固定 0
+            const dubOffset = t._recStartOffset || 0;
+            if (t.dubMode === 'REPLACE') {
+              // REPLACE：新錄音對齊偏移後直接覆蓋
+              t.buffer = loopSync && masterLoopLen ? fitToMasterLen(newBuf, dubOffset) : newBuf;
+            } else {
+              // DUB：新錄音先補位移到正確時間點，再跟舊錄音混音
+              const aligned = loopSync && masterLoopLen
+                ? fitToMasterLen(newBuf, dubOffset)
+                : await padBufferAtOffset(newBuf, dubOffset, t.buffer.duration);
+              t.buffer = await mixBuffers(t.buffer, aligned);
+            }
           } else {
             t.prevBuffer = null;
             t.redoBuffer = null;
@@ -759,8 +787,8 @@ function stopRecording(t, isOverdub) {
       rec.stop();
     };
 
-    if (loopMode === 'LIVE' && clockRunning && !isOverdub) {
-      // LIVE 模式：等到 loop 邊界才停止錄音
+    if (loopMode === 'LIVE' && clockRunning) {
+      // LIVE 模式：等到 loop 邊界才停止錄音（含疊錄，確保節奏對齊）
       const waitMs = timeToNextBoundary() * 1000;
       setTimeout(doStop, Math.max(0, waitMs - 20));
     } else {
@@ -857,6 +885,8 @@ async function onStop(id) {
 async function onDub(id) {
   const t = tracks[id];
   if (t.state === S.PLAYBACK) {
+    // 記錄按下疊錄那一刻在 Master Clock 中的位置，供混音對齊使用
+    t._recStartOffset = masterClockPos();
     await startRecording(t, true);
   } else if (t.state === S.OVERDUBBING) {
     await stopRecording(t, true);
@@ -879,7 +909,8 @@ function onUndo(id) {
   t.redoBuffer = t.buffer;
   t.buffer     = t.prevBuffer;
   t.prevBuffer = null;
-  if (t.state === S.PLAYBACK || t.state === S.STOPPED) playTrack(t);
+  // 只有「正在播放中」才需要立即換內容重新排程；STOPPED 維持停止，避免 state 與實際播放不一致
+  if (t.state === S.PLAYBACK) playTrack(t);
   setInfo('Track ' + (id+1) + ' undone');
   rerenderTrack(id);
 }
@@ -891,7 +922,7 @@ function onRedo(id) {
   t.prevBuffer = t.buffer;
   t.buffer     = t.redoBuffer;
   t.redoBuffer = null;
-  if (t.state === S.PLAYBACK || t.state === S.STOPPED) playTrack(t);
+  if (t.state === S.PLAYBACK) playTrack(t);
   setInfo('Track ' + (id+1) + ' redone');
   rerenderTrack(id);
 }
@@ -899,6 +930,19 @@ function onRedo(id) {
 // 單軌清除
 function onClear(id) {
   const t = tracks[id];
+
+  // 防呆：正在錄音/疊錄時清除是高風險動作（會中斷錄音且不可復原），需二次確認
+  const isRecordingLike = t.state === S.RECORDING || t.state === S.OVERDUBBING || t.state === S.STANDBY;
+  if (isRecordingLike) {
+    const ok = confirm(T[lang].clear_confirm_recording.replace('{n}', id+1));
+    if (!ok) return;
+  } else if (t.buffer) {
+    // 已有錄音內容，清除也不可復原，仍需確認（但風險較低，文字較輕）
+    const ok = confirm(T[lang].clear_confirm.replace('{n}', id+1));
+    if (!ok) return;
+  }
+  // EMPTY 且無內容：無風險，不需確認
+
   t.recScheduled = false;
   if (autoRecTimer && t.state === S.STANDBY) { clearInterval(autoRecTimer); autoRecTimer = null; }
   if (t.mediaRecorder && t.mediaRecorder.state !== 'inactive') {
@@ -1147,10 +1191,7 @@ function trackHTML(t) {
     <span class="tc-vol-val" id="vv${id}">${Math.round(volume*100)}%</span>
   </div>
   <div class="tc-btns1">
-    <button class="tbtn tb-trig" data-s="${state}" onclick="onTrigger(${id})"
-      style="flex:2" ${trigDisabled?'disabled':''}>
-      ${trigDisabled?'':L.trig[state]||''}
-    </button>
+    <button class="tbtn tb-trig" data-s="${state}" onclick="onTrigger(${id})" style="flex:2" ${trigDisabled?'disabled':''}>${trigDisabled?'':L.trig[state]||''}</button>
     <button class="tbtn tb-stop" onclick="onStop(${id})"
       ${canStop?'':'disabled'}>${L.stop}</button>
     <button class="tbtn tb-dub ${isDubbing?'dubbing':''}" onclick="onDub(${id})"
